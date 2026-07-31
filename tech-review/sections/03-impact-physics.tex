@@ -1,0 +1,239 @@
+\chapter{Impact Physics: From Club Delivery to Ball Launch}
+\label{ch:impact}
+
+Every launch monitor embeds a model of the club--ball collision. Camera
+systems use it \emph{forward} (sanity-checking and filling gaps); radar
+systems use it \emph{inverse} (recovering face angle and dynamic loft from
+measured ball launch). This chapter develops that model.
+
+\section{The D-plane}
+\label{sec:dplane}
+
+Jorgensen~\cite{jorgensen} observed that at impact two unit vectors
+determine the collision geometry for a center strike:
+\begin{itemize}
+  \item $\uvec{n}$, the \textbf{face normal}, built from face angle
+        $\varphi_f$ and dynamic loft $\lambda_d$;
+  \item $\uvec{p}$, the \textbf{club-head velocity direction}, built from
+        club path $\varphi_p$ and attack angle $\alpha$.
+\end{itemize}
+These two vectors span a wedge-shaped plane --- the \emph{D-plane}
+(``descriptive plane''). Its two governing consequences are:
+
+\begin{enumerate}
+\item \textbf{Launch direction lies in the D-plane}, between $\uvec{n}$ and
+$\uvec{p}$, much closer to the face normal.
+\item \textbf{The spin axis is normal to the D-plane}:
+\begin{equation}
+\label{eq:spinaxisdplane}
+\hat{\vect{\omega}} \propto \uvec{p} \times \uvec{n}.
+\end{equation}
+The ball therefore curves \emph{away from the path, around the face} ---
+the ``new ball flight laws.''
+\end{enumerate}
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[scale=1.05,>=Stealth]
+  % target line
+  \draw[ofgray,dashed,->] (0,0) -- (9.5,0) node[right] {\small target line};
+  % club path vector
+  \draw[thick,ofgreen,->] (0,0) -- ({8*cos(-6)},{8*sin(-6)})
+    node[below right] {\small club path $\uvec{p}$ ($-6\degs$)};
+  % face normal
+  \draw[thick,ofblue,->] (0,0) -- ({8*cos(-2)},{8*sin(-2)})
+    node[above right] {\small face normal $\uvec{n}$ ($-2\degs$)};
+  % launch direction
+  \draw[very thick,red!70!black,->] (0,0) -- ({8.6*cos(-2.6)},{8.6*sin(-2.6)})
+    node[right] {\small launch $\approx 0.85\varphi_f + 0.15\varphi_p$};
+  % angle arcs
+  \draw[ofgray] (2.2,0) arc[start angle=0,end angle=-6,radius=2.2];
+  \node[ofgray] at (2.9,-0.32) {\footnotesize $\varphi_p$};
+  \draw[ofgray] (4.6,0) arc[start angle=0,end angle=-2,radius=4.6];
+  \node[ofgray] at (5.3,-0.09) {\footnotesize $\varphi_f$};
+\end{tikzpicture}
+\caption{Horizontal D-plane geometry (top view, right-handed golfer,
+out-to-in ``fade'' delivery). The ball launches close to the face
+direction; the face-to-path difference tilts the spin axis and curves the
+ball away from the path.}
+\label{fig:dplane}
+\end{figure}
+
+\subsection{Face/path weighting of launch direction}
+\label{sec:facepathweighting}
+
+Robot and player data (TrackMan's 2009 ball-flight-laws
+analysis~\cite{trackmanballflightlaws}) give the canonical weighting of
+horizontal launch direction between face angle and club path:
+\begin{equation}
+\label{eq:launchweight}
+\varphi_{\mathrm{launch}} \;\approx\;
+  w_f\,\varphi_f + (1-w_f)\,\varphi_p,
+\qquad
+w_f \approx
+\begin{cases}
+  0.85\text{--}0.87 & \text{driver} \\
+  0.75 & \text{short irons / wedges.}
+\end{cases}
+\end{equation}
+The weight is loft- and friction-dependent: more loft means a more oblique
+impact, hence a larger tangential (friction-driven) momentum component
+along the path direction. Peer-reviewed impact modeling with normal COR
+plus tangential compliance reproduces the 75--85\% face dominance from
+first principles~\cite{mdpifriction,facepathstudy}.
+
+Tutelman~\cite{tutelman3d} gives a closed-form version calibrated to
+TrackMan data. With face-to-path angle $A$ and dynamic loft $L$, define the
+total obliqueness $\Phi$ (which is precisely the spin loft):
+\begin{equation}
+\label{eq:obliqueness}
+\cos\Phi = \cos A \cos L, \qquad
+f(\Phi) = 0.96 - 0.0071\,\Phi \quad (\Phi \text{ in degrees}),
+\end{equation}
+and the departure angles relative to the club path are
+\begin{equation}
+\label{eq:tutelmanlaunch}
+\mathrm{DA}_{\mathrm{vert}} = L\,f(\Phi), \qquad
+\mathrm{DA}_{\mathrm{horiz}} = A\,f(\Phi),
+\end{equation}
+with launch angles relative to the target obtained by adding attack angle
+and path respectively. Note $f(\Phi)\approx0.85$ at $\Phi\approx15\degs$
+(driver) and $\approx0.75$ at $\Phi\approx30\degs$ (short iron): one
+friction-calibrated function reproduces both rules of thumb.
+
+\subsection{Spin-axis tilt}
+
+For a center strike the spin-axis tilt follows from the D-plane geometry:
+\begin{equation}
+\label{eq:axistilt}
+\tan\theta_{\mathrm{axis}} \approx
+  \frac{\tan(\text{face-to-path})}{\tan(\text{spin loft})},
+\end{equation}
+so $1\degs$ of face-to-path tilts the axis $\approx4\degs$ with a driver
+(spin loft $\sim$12--15$\degs$) but only $\approx2\degs$ with a mid-iron
+(spin loft $\sim$25--30$\degs$)~\cite{perfectgolfswing}. Tuxen's
+shot-shaping rule for a ball that curves back to the target line:
+$\theta_{\mathrm{axis}} \approx -2.5\times$ the horizontal launch angle.
+
+\begin{implication}
+OpenFlight measures launch direction (K-LD7 horizontal) and club
+path. \Cref{eq:launchweight} then yields face angle by inversion:
+$\varphi_f = (\varphi_{\mathrm{launch}} - (1-w_f)\varphi_p)/w_f$. Because
+$1/w_f \approx 1.15$, any systematic launch-direction bias is
+\emph{amplified} $\sim$15\% in the reported face angle --- alignment
+calibration of the horizontal angle radar is the single most important
+accuracy investment for club data.
+\end{implication}
+
+\section{Ball speed and smash factor}
+\label{sec:smash}
+
+The normal-direction collision is well modeled as a two-body impact with
+coefficient of restitution $e$~\cite{cochranstobbs,penner2003}:
+\begin{equation}
+\label{eq:ballspeed}
+v_{\mathrm{ball}} = v_{\mathrm{club}}\,
+  \frac{1+e}{1+m/M}\,\cos\Phi\,
+  \bigl(1 - 0.14\,x_{\mathrm{miss}}\bigr),
+\end{equation}
+with $e \approx 0.83$ at the USGA driver limit (falling with loft and
+impact speed), ball mass $m = 45.93$\,g, head mass $M \approx 200$\,g
+(driver), $\cos\Phi$ the obliqueness loss, and the last factor an empirical
+off-center loss with $x_{\mathrm{miss}}$ in inches~\cite{tutelmansmash}.
+The prefactor $(1+e)/(1+m/M)\approx1.49$ sets the theoretical driver smash
+ceiling; smash factor falls with loft:
+
+\begin{center}
+\small
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+Effective loft & $0\degs$ & $10\degs$ & $20\degs$ & $30\degs$ \\
+Max smash factor & 1.488 & 1.465 & 1.398 & 1.288 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{keypoint}
+This table is a built-in sanity check: a measured smash factor above the
+loft-appropriate ceiling indicates a measurement error --- most commonly a
+radar unit reporting toe speed or shaft speed instead of
+geometric-center club speed. OpenFlight should flag physically impossible
+smash values instead of displaying them.
+\end{keypoint}
+
+\section{Spin generation}
+\label{sec:spingen}
+
+Friction during the oblique compression converts tangential surface speed
+$v_{\mathrm{club}}\sin\Phi$ into rotation. Real impacts exhibit tangential
+compliance (the contact patch sticks and stretches like a shear
+spring)~\cite{mdpifriction,crossoblique}, but a practical engineering fit
+calibrated to TrackMan data~\cite{tutelman3d} is simply
+\begin{equation}
+\label{eq:spinrate}
+S_{\mathrm{total}}\ [\mathrm{rpm}] \approx
+  160\, v_{\mathrm{club}}[\mathrm{mph}]\, \sin\Phi ,
+\end{equation}
+with the back/side split following from the D-plane direction ratio
+$d = \tan A/\tan L$:
+$S_{\mathrm{back}} = S/\sqrt{1+d^2}$, $S_{\mathrm{side}} = d\,S_{\mathrm{back}}$.
+Cross-checks: $\sim$200--300\,rpm per degree of spin loft for a driver;
+the ``iron loft $\times$ 200'' rule matches PGA Tour averages. Friction
+saturates near spin lofts of 45--50$\degs$ (the ``spin-loft cliff''), and
+wet or grass-contaminated contact reduces spin at fixed spin
+loft~\cite{trackmanspinloft}.
+
+\section{Gear effect and impact location}
+\label{sec:gear}
+
+An impact at horizontal offset $x$ from the CG line torques the head about
+its CG; the recoiling face ``gears'' the ball the opposite way. The
+angular-impulse model~\cite{tutelmangear} gives head rotation
+$\omega_{\mathrm{head}} = x\,m\,v_{\mathrm{ball}}/I_h$ and gear spin
+\begin{equation}
+\label{eq:gear}
+s\ [\mathrm{rpm}] = 58{,}830\,
+  \frac{v_{\mathrm{ball}}[\mathrm{mph}]\; C[\mathrm{in}]\;
+        x[\mathrm{in}]}{I_h[\mathrm{g\,cm^2}]}
+\;\approx\; 16.4\, v_{\mathrm{ball}}[\mathrm{mph}]\;
+   x[\mathrm{in}] \times 100,
+\end{equation}
+where $C$ is CG depth behind the face (32--47\,mm on measured OEM drivers)
+and $I_h = 4000$--$5800\,\mathrm{g\,cm^2}$; the ratio $I_h/C$ is nearly
+constant across modern drivers, which is why the simplified form works to
+$\pm2.5\%$. A toe strike opens the head and imparts \emph{hook} gear spin;
+a heel strike, slice spin. Vertical gear effect (high-face strikes reduce
+backspin, low-face strikes increase it) follows the same equation with the
+vertical CG offset and roll radius.
+
+Driver faces are built curved to exploit this: \textbf{bulge} (horizontal
+radius, typically 12\,in) starts a toe miss right so the gear-effect hook
+curves it back. Worked example~\cite{tutelmangear}: a 1\,in toe miss at
+150\,mph ball speed gets $+1354$\,rpm of bulge-induced slice spin against
+$-2192$\,rpm of gear hook spin --- net 838\,rpm hook and $\sim$10\,yd left,
+versus $\sim$61\,yd offline for a flat face. Sensitivity is extreme: a
+strike one dimple width ($0.14$\,in) off-center tilts the spin axis
+$\sim6\degs$ on a driver ($\sim2\degs$ on a 6-iron)~\cite{perfectgolfswing}.
+Irons have shallow CG depth, hence weak gear effect and flat faces.
+
+\begin{implication}
+Gear effect is why \emph{impact location} is the most valuable club
+parameter a launch monitor can add after path/face: without it, a pure
+D-plane inversion misattributes gear-effect spin-axis tilt to face-to-path.
+For a radar-only OpenFlight this is a fundamental, quantifiable error
+source on off-center driver strikes (up to several degrees of apparent
+face-to-path); \cref{eq:gear} bounds it, and an optical impact-location
+add-on (\cref{ch:implications}) removes it.
+\end{implication}
+
+\section{Vertical plane and the low-point geometry}
+
+The identical geometry applies vertically: launch angle sits 75--85\% of
+the way from attack angle toward dynamic loft, and spin loft sets spin
+magnitude via \cref{eq:spinrate}. One non-obvious coupling: for a
+descending strike on an inclined swing plane, the instantaneous path points
+in-to-out even when the swing direction is square --- e.g.\ hitting
+$5\degs$ down on a $60\degs$ plane yields $\approx2.9\degs$ of in-to-out
+path. Radar systems that measure swing plane and attack angle use this
+relation (path $=f(\text{swing direction, swing plane, attack angle})$) as
+a consistency constraint among the measured club parameters.

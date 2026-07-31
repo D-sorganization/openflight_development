@@ -1,0 +1,72 @@
+\chapter{Accuracy: The Independent Evidence}
+\label{ch:accuracy}
+
+\section{Peer-reviewed validation}
+
+\textbf{Leach, Forrester, Mears \& Roberts (2017)}~\cite{leach2017}
+remains the key criterion study: 240 shots (driver, 7-iron, wedge)
+measured simultaneously by a TrackMan Pro~IIIe, a Foresight GC2+HMT, and
+a four-camera 5,400\,fps optical reference. Findings: ball parameters
+agreed well on both devices (TrackMan clubhead-speed median difference
+$-0.4$\,mph; ball speed $+0.2$\,mph; launch angle $0.0\degs$), but
+\textbf{club parameters were materially worse for both} --- the authors
+endorse ball data for research use and advise caution on club data. This
+is the empirical face of the directness hierarchy of
+\cref{sec:hierarchy}: what is measured agrees; what is derived diverges.
+
+\textbf{TrackMan 4 indoor reliability (J. Sports Sciences,
+2024)}~\cite{tm4reliability}: within- and between-session reliability in
+high-level golfers indoors --- ICC 0.99 for club speed, 0.97--0.99 for
+ball speed, but \textbf{spin-rate ICC as low as 0.02--0.60}: even the
+reference radar's indoor spin channel is fragile when flight is
+truncated.
+
+A 2025 Mevo+ vs.\ TrackMan~4 indoor agreement study
+exists~\cite{mevoplusstudy} (abstract-level access only at review time),
+extending the same pattern down-market.
+
+\section{Robot and industry testing}
+
+Golf Laboratories robot testing (reported via Foresight and third
+parties) puts GCQuad center-strike spin standard deviation at
+$\approx$82\,rpm versus $\approx$175\,rpm for TrackMan~4 --- the
+photometric spin advantage in its clearest form~\cite{golflabsrobot}.
+MyGolfSpy's indoor comparison against a GCQuad reference found the
+camera-assisted MLM2PRO among the tightest budget units for launch,
+spin, and carry, with radar-only units (R10, original Mevo) trailing
+indoors~\cite{mygolfspyindoor}. Manufacturer-quoted specs bracket the
+market: $\pm1$\,mph ball speed and $\pm1\degs$ launch angles are common
+claims; club-face claims ($\pm2\degs$, ``calculated'') are visibly
+weaker.
+
+\section{What drives inter-device disagreement}
+
+Synthesizing the validation literature and the architecture analysis:
+
+\begin{enumerate}
+\item \textbf{Reference-point differences} in club speed (geometric
+center vs.\ fastest return) --- several mph of systematic spread.
+\item \textbf{Derived face data}: D-plane inversion amplifies
+launch-direction bias by $\sim$1.15$\times$ and cannot see gear effect,
+so radar face angle diverges from optical face angle most on off-center
+strikes.
+\item \textbf{Indoor spin}: sideband SNR collapses on short flights and
+clean balls; systems silently switch to estimation, and estimated spin
+feeds the carry model.
+\item \textbf{Flight-model differences}: identical launch conditions
+produce different simulated carries across vendors; this is a modeling
+disagreement, not a measurement one.
+\item \textbf{Alignment}: a unit misaligned to the target line biases
+path, face, and launch direction coherently --- the cheapest error to fix
+and the most common in practice.
+\end{enumerate}
+
+\begin{implication}
+For OpenFlight validation against the MLM2PRO (the project's reference
+instrument): compare ball speed and launch angles directly; compare spin
+only on RPT/RCT marked balls where the MLM2PRO's measurement is
+camera-based; expect club-speed offsets from reference-point differences
+and calibrate a per-club correction rather than chasing agreement; and
+log raw I/Q captures so spin-detection improvements can be replayed
+against historical shots.
+\end{implication}

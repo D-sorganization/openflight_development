@@ -1,0 +1,187 @@
+\chapter{Sensor Hardware and Integration Reference}
+\label{app:hardware}
+
+This appendix is a specification-level reference for OpenFlight's actual
+and planned building blocks, drawn from vendor datasheets and application
+notes (all linked). Notably, OmniPreSense's own sports application note
+AN-029 documents the exact OpenFlight golf configuration and cites the
+OpenFlight repository by name as its reference
+implementation~\cite{an029}.
+
+\section{OmniPreSense OPS243-A (24\,GHz CW Doppler)}
+
+\subsection{Hardware}
+Per the product brief~\cite{ops243brief}: 24.00--24.25\,GHz ISM band,
+11\,dBm transmit power (FCC ID 2ALLL243A), patch antenna with
+\textbf{20$\degs$ azimuth $\times$ 24$\degs$ elevation} $-3$\,dB
+beamwidth (footprint $\sim$0.4\,m wide at 1\,m, 1.8\,m at 5\,m); motion
+detection 1--100\,m; speed to 348\,mph at 50\,ksps; accuracy spec
+0.5\%; USB CDC + 3.3\,V UART (default 19{,}200\,8N1); 5--24\,V supply,
+1.7\,W active.
+
+\subsection{API essentials}
+From AN-010~\cite{an010}: sample rate \texttt{S=n} (1--1000\,ksps;
+10\,ksps default); buffer 1024/512/256/128 via
+\texttt{S>}/\texttt{S<}/\texttt{S[}/\texttt{S(}; zero-padding
+\texttt{Xn}/\texttt{X=16}/\texttt{X=32} to a 4096-point FFT. Speed
+ceiling and resolution scale with sample rate (10\,ksps
+$\to$ 31.1\,m/s at 0.061\,m/s; 50\,ksps $\to$ 155.4\,m/s at
+0.304\,m/s per 1024-sample buffer). Output modes: \texttt{OJ} JSON,
+\texttt{OT} timestamps, \texttt{OM} magnitudes, \texttt{O=n}
+multi-object (to 16), \texttt{OF} post-FFT, \texttt{OR} raw I/Q.
+Filters: \texttt{R>}/\texttt{R<} speed, \texttt{R$\pm$} direction,
+\texttt{M>} magnitude, \texttt{K+} peak averaging; built-in
+cosine-error correction \texttt{\^{}/$\pm$n.n} (0--89$\degs$).
+\texttt{A!}\ persists settings to flash.
+
+\subsection{Rolling buffer and triggering}
+From AN-027~\cite{an027}: \texttt{G1} enters rolling-buffer mode with a
+fixed \textbf{4096-sample I/Q buffer organized as 32 segments of 128
+samples}; trigger by software (\texttt{S!}) or a 3.3\,V rising edge on
+\textbf{J3 pin 3 (HOST\_INT)}; \texttt{S\#n} sets the pre/post-trigger
+split (default 8 $\to$ 1024 pre + 3072 post). At OpenFlight's 30\,ksps
+the buffer spans 136.5\,ms with a 208.5\,mph ceiling --- AN-027's
+``golf ball setting.'' The app note wires a \textbf{SparkFun SEN-14262
+Gate output directly to HOST\_INT} (OpenFlight's exact trigger) and
+flags the acoustic-latency budget: sound from 2\,m arrives
+$\sim$6.6\,ms late, so the pre-trigger split must cover the
+impact-to-trigger gap (their example \texttt{S\#18}).
+
+\subsection{The vendor golf recipe (AN-029)}
+AN-029~\cite{an029} specifies: \texttt{S=30} (209\,mph ceiling),
+\texttt{S(} 128-sample segments, \texttt{X=32} (4096-point FFT,
+0.1\,mph resolution, $\sim$200\,Hz report rate), \texttt{US},
+\texttt{R>10} to mask waggle, \texttt{M>10}, \texttt{O2} to report
+ball + club for smash factor (gated 1.0--1.50, matching
+\cref{sec:smash}), \texttt{K+} averaging, sensor 2--3\,m behind the
+ball. Golf balls are rated ``high'' reflectivity, detectable 5--10\,m.
+
+\section{RFbeam K-LD7 (24\,GHz FSK, dual-RX angle)}
+
+Per the datasheet~\cite{kld7}: 24.050--24.250\,GHz FSK (two
+frequencies, enabling range via phase difference); EIRP 6\,dBm; 1\,TX +
+\textbf{2 I/Q RX patches at 6.223\,mm ($\approx\lambda/2$) spacing} ---
+the interferometric baseline of \cref{eq:interferometry}; beam
+80$\degs$\,H $\times$ 34$\degs$\,V. Per-frame 256-point complex FFT;
+\textbf{angle $\pm$90$\degs$ at 1$\degs$ resolution from the
+Rx1--Rx2 phase difference}; distance 5\,cm--100\,m (resolution 5\,cm at
+the 5\,m range setting); speed 0.1--100\,km/h --- note the
+\textbf{62\,mph speed ceiling}, which confines the K-LD7 to angle and
+club-speed work; ball speed must come from the OPS243-A. Frame time at
+the 100\,km/h setting is 29\,ms ($\sim$34\,Hz).
+
+UART protocol (115200\,8E1 default, to 3\,Mbaud via \texttt{INIT}):
+message types \texttt{RADC} (raw ADC: 256\,I + 256\,Q for Rx1@$f_A$,
+Rx2@$f_A$, Rx1@$f_B$ --- the payload OpenFlight's interferometry
+consumes), \texttt{RFFT} (spectrum + threshold), \texttt{PDAT} (up to
+12 raw targets: distance/speed/angle/magnitude), \texttt{TDAT}
+(tracked target), \texttt{DDAT} (flags), \texttt{DONE} (frame counter
+--- use it to detect dropped frames); requested via the \texttt{GNFD}
+bitfield. Configuration: \texttt{RSPI} max speed, \texttt{RRAI} max
+range, \texttt{THOF} threshold offset (10--60\,dB), \texttt{RBFR} base
+frequency (three channels for multi-module coexistence --- set the two
+OpenFlight units to different channels), \texttt{TRFT} tracking filter,
+detection-window bounds (\texttt{MIRA}/\texttt{MARA}/\texttt{MIAN}/
+\texttt{MAAN}/\texttt{MISP}/\texttt{MASP}). Positive speed = receding.
+
+\section{TI IWR6843 (60--64\,GHz FMCW MIMO, on order)}
+
+Per the datasheet~\cite{iwr6843}: 60--64\,GHz with \textbf{4\,GHz
+chirp bandwidth} ($\sim$3.75\,cm native range resolution);
+\textbf{3\,TX / 4\,RX = 12 virtual antennas} (TDM-MIMO); on-chip
+C674x DSP + radar hardware accelerator (FFT, log-magnitude, CFAR);
+complex-baseband ADC to 12.5\,Msps. The LEVM/ISK-class EVMs give
+$\sim$120$\degs$ azimuth FoV with $\sim$15$\degs$ azimuth angular
+resolution (8 virtual azimuth antennas) and coarse elevation; the AOP
+variant trades resolution for a 130$\degs\times$130$\degs$ field. The
+out-of-box mmWave SDK demo streams a TLV point cloud
+($x,y,z$, Doppler) at $\sim$10--20\,Hz --- \emph{too slow for a 3\,ms
+launch window}; using the IWR6843 for launch measurement requires a
+custom chirp/frame configuration (short frames, high Doppler span) and
+low-level processing, for which TI's people-tracking labs
+(TIDEP-01000/01010) are the closest starting points~\cite{iwr6843}.
+TI's forums confirm no golf-specific lab exists. The natural OpenFlight
+role: a single sensor that measures range, angle, and radial speed
+simultaneously (replacing both K-LD7s) once custom chirp work is done.
+
+\section{Raspberry Pi Global Shutter camera (optical module)}
+
+Sony IMX296 sensor: 1456$\times$1088, 3.45\,\si{\micro\meter} pixels,
+true global shutter, exposures to $\sim$30\,\si{\micro\second}, max
+$\sim$60\,fps streaming~\cite{pigscam}. The key feature for
+\cref{app:optical} is the \textbf{XTR external-trigger pad}: pulse low
+to expose (exposure = pulse width + 14.26\,\si{\micro\second}); frame
+rate follows the pulse train; multiple cameras on one trigger line are
+hardware-synchronized; enable with
+\texttt{v4l2-ctl -c trigger\_mode=1} (early boards: remove R11 if Q2
+is fitted)~\cite{pigscam}. Continuous 60\,fps cannot capture flight ---
+the strobed multi-exposure design of \cref{app:optical} is the correct
+use of this sensor.
+
+\section{Simulator integration: GSPro Open Connect}
+\label{app:gspro}
+
+GSPro's Open Connect v1~\cite{gspro} is the only fully documented open
+launch-monitor protocol and should be OpenFlight's native output
+(PiTrac ships it; E6/TruGolf and Foresight FSX require partnership
+agreements~\cite{pitrac}). Mechanics: JSON over TCP to
+\texttt{127.0.0.1:0921}, launch monitor as client. Minimum shot
+message: \texttt{DeviceID}, \texttt{ShotNumber}, \texttt{APIversion},
+\texttt{ShotDataOptions\{ContainsBallData, ContainsClubData\}}, and
+\texttt{BallData} with the five required fields:
+\begin{center}\small
+\begin{tabular}{@{}llll@{}}
+\toprule
+Field & Units & Required & Maps to \\
+\midrule
+\texttt{Speed} & mph & yes & ball speed (\cref{tab:ballparams}) \\
+\texttt{VLA} & deg & yes & launch angle \\
+\texttt{HLA} & deg & yes & launch direction \\
+\texttt{TotalSpin} & rpm & yes$^{*}$ & spin rate \\
+\texttt{SpinAxis} & deg & yes$^{*}$ & spin-axis tilt ($-$ = draw) \\
+\bottomrule
+\end{tabular}
+
+\smallskip
+\footnotesize $^{*}$or \texttt{BackSpin}+\texttt{SideSpin}, related by
+\cref{eq:spincomponents}.
+\end{center}
+Optional \texttt{ClubData} carries \texttt{Speed},
+\texttt{AngleOfAttack}, \texttt{Path}, \texttt{FaceToTarget},
+\texttt{Loft}, \texttt{Lie}, \texttt{SpeedAtImpact},
+\texttt{VerticalFaceImpact}, \texttt{HorizontalFaceImpact},
+\texttt{ClosureRate} --- precisely the \cref{tab:clubparams} set, so
+the provenance tagging of \cref{ch:implications} carries through
+unchanged. Status flags (\texttt{LaunchMonitorIsReady},
+\texttt{LaunchMonitorBallDetected}, \texttt{IsHeartBeat}) and the
+201 player-info response (handedness, selected club --- useful for
+per-club priors, \cref{app:priors}) complete the loop.
+
+\section{Regulatory constants for the physics engine}
+
+USGA/R\&A equipment rules anchor the models of
+\cref{ch:impact,ch:flight}~\cite{usgarules}: ball mass
+$\le45.93$\,g and diameter $\ge42.67$\,mm (the constants in
+\cref{eq:eom}); clubhead characteristic time
+$\mathrm{CT}\le239$\,\si{\micro\second} (+18 tolerance)
+$\approx$ COR 0.830 --- the $e$ in \cref{eq:ballspeed}; head MOI
+$\le5900$\,g\,cm$^2$ (+100) about the vertical CG axis --- the upper
+bound on $I_h$ in \cref{eq:gear}; volume $\le460$\,cc. The Overall
+Distance Standard (317\,yd + 3 at 120\,mph clubhead / 10$\degs$ /
+2520\,rpm; from January 2028, 125\,mph / 11$\degs$ / 2200\,rpm) is a
+useful end-to-end sanity envelope for the flight model: a conforming
+ball simulated at ALC conditions must not materially exceed
+320\,yd~\cite{usgarules}.
+
+\section{Detection theory: CFAR selection}
+
+OpenFlight's current CFAR (SNR $>15$ over a 150-bin DC mask) is a
+cell-averaging scheme. The radar literature~\cite{cfartutorial}
+distinguishes: CA-CFAR (mean of training cells around the cell under
+test, guard cells excluded; threshold $\alpha\hat P_n$ with $\alpha$
+set by the desired false-alarm probability) --- optimal in homogeneous
+noise; and \textbf{OS-CFAR} (order statistic: the $k$-th ranked
+training cell) --- robust when two targets sit close together, at
+$\sim$0.5--1\,dB detection loss. The club-then-ball geometry of a golf
+shot is precisely the two-closely-spaced-targets case, so OS-CFAR is
+the better default for the impact window.

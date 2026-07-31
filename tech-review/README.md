@@ -4,8 +4,8 @@ A comprehensive LaTeX technology review of how commercial golf launch monitors
 work — radar physics, camera photogrammetry, patent landscape, and the
 club/ball parameter calculations — written to guide OpenFlight development.
 
-- **[main.pdf](main.pdf)** — the compiled report (~47 pages)
-- `main.tex` + `sections/` — LaTeX source (10 chapters + 2 appendices + bibliography)
+- **[main.pdf](main.pdf)** — the compiled report (~59 pages)
+- `main.tex` + `sections/` — LaTeX source (10 chapters + 4 appendices + bibliography)
 - `research/` — the four raw research dossiers the report was synthesized from
   (radar systems, camera systems, patents, physics/algorithms), with source
   URLs for every claim
@@ -25,5 +25,9 @@ club/ball parameter calculations — written to guide OpenFlight development.
 10. Implications for OpenFlight — phased roadmap (radar hardening → optical spin/impact module → fusion)
 
 Appendix A — Live reference library: every source as a clickable link, organized by category (patents, FCC filings, manufacturer docs, peer-reviewed literature, engineering references, DIY projects, comparative testing)
+
+Appendix C — Sensor hardware and integration reference: OPS243-A specs/API/rolling buffer + the AN-029 vendor golf recipe (which cites OpenFlight by name), K-LD7 datasheet + UART protocol, IWR6843 FMCW specifics, Pi Global Shutter XTR triggering, the full GSPro Open Connect schema, USGA equipment constants, and CFAR selection guidance
+
+Appendix D — Patent portfolio compendium: every identified US patent for TrackMan (all 45 on their legal page + 7 more), Topgolf Sweden/Toptracer, FlightScope/EDH, Full Swing (US11311789 grant), Garmin, Rapsodo, Foresight/Wintriss, Creatz/Uneekor, Golfzon, Acushnet (back to the ancestral 1977 US4136387), plus prior art (Sports Sensors, Weibel, Stalker) — each number hotlinked to Google Patents, with two attribution corrections (US10596416 family = Toptracer, not TrackMan)
 
 Appendix B — Detailed implementation guidance: OPS243-A DSP parameters (Doppler scaling, window/chirp trade-offs, comb spin estimation), K-LD7 interferometry + EKF/RTS smoother design, alignment calibration procedures, D-plane inversion with priors and gear-effect bounds, Phase-2 optical module design parameters (strobe timing, dimple registration), and the MLM2PRO validation protocol

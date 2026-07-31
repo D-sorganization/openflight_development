@@ -1,0 +1,400 @@
+\chapter{Patent Portfolio Compendium}
+\label{app:patents}
+
+This appendix enumerates, company by company, every US patent identified
+in the portfolio sweep (July 2026), with each number hyperlinked to its
+Google Patents page. Coverage notes: all 45 numbers on TrackMan's
+official legal page~\cite{trackmanpatents} are included plus seven
+granted TrackMan patents absent from that page; Uneekor's marking
+page~\cite{uneekorpatents} and Justia/FreePatentsOnline assignee sweeps
+were used as completeness cross-checks. Priority years are US/PCT
+filing-based (Korean assignees typically claim a KR priority
+$\sim$12 months earlier). Status is as reported by Google Patents;
+\emph{verify claim-by-claim with counsel before relying on any entry}.
+
+Two attribution corrections surfaced by this sweep are worth flagging
+prominently: (i) the widely cited ``radar + image data 3D tracking''
+family US10596416 / US11697046 / US12128275 belongs to
+\textbf{Topgolf Sweden AB (Toptracer)}, not TrackMan; and (ii) Full
+Swing's launch-monitor application US2020/0147470 granted as
+\patent{US11311789B2} (expiry $\sim$2039).
+
+\section{TrackMan A/S (incl.\ Interactive Sports Games A/S)}
+
+\subsection*{Radar fundamentals and target-line deviation (2004--2011)}
+\begin{longtable}{@{}p{2.5cm}p{8.2cm}p{1.2cm}p{2.2cm}@{}}
+\toprule
+\textbf{Patent} & \textbf{Subject} & \textbf{Prio.} & \textbf{Notes}\\
+\midrule
+\endhead
+\patent{US8085188B2} & Deviation of launched projectile vs.\
+  image-designated target direction & 2004 & family expires
+  2026--27 \\
+\patent{US8912945B2} & Continuation: camera+radar launch/target/
+  trajectory correlation & 2004 & not on legal page \\
+\patent{US9857459B2} & Continuation: camera on radar identifies target
+  feature & 2004 & lapsed 2022 \\
+\patent{US10473778B2} & Continuation & 2004 & \\
+\patent{US10690764B2} & Continuation & 2004 & \\
+\patent{US9958527B2} & Direction-of-arrival sensor: extra RX antenna
+  resolves monopulse phase ambiguity & 2011 & the sparse-array
+  geometry of \cref{sec:interferometry} \\
+\bottomrule
+\end{longtable}
+
+\subsection*{Spin rate and spin axis}
+\begin{longtable}{@{}p{2.5cm}p{8.2cm}p{1.2cm}p{2.2cm}@{}}
+\toprule
+\textbf{Patent} & \textbf{Subject} & \textbf{Prio.} & \textbf{Notes}\\
+\midrule
+\endhead
+\patent{US8845442B2} & Spin rate via harmonic sidebands; spin axis via
+  trajectory/Magnus inversion & 2005 & to $\sim$2029 (PTA);
+  EP\,1\,698\,380 litigated \\
+\patent{US9645235B2} & Continuation & 2005 & \\
+\patent{US10393870B2} & Continuation & 2005 & to Dec.\ 2026 \\
+\patent{US10962635B2} & Continuation & 2005 & not on legal page \\
+\patent{US11143754B2} & Continuation & 2005 & not on legal page \\
+\patent{US10850179B2} & Spin axis from multi-receiver Doppler
+  decomposition & 2018 & \\
+\patent{US11446546B2} & Continuation: phase differences $\to$ axis &
+  2018 & \\
+\patent{US11938375B2} & Continuation: $\ge$3 non-colinear receivers &
+  2018 & \\
+\patent{US11673029B2} & Marked-ball radar spin (great-circle marker
+  layout) & 2019 & the RCT-ball patent \\
+\patent{US12179068B2} & Continuation & 2019 & \\
+\patent{US12042698B2} & Toppling frequency of non-spherical rotating
+  objects & 2018 & \\
+\bottomrule
+\end{longtable}
+
+\subsection*{Club impact (markerless, single camera)}
+\begin{longtable}{@{}p{2.5cm}p{8.2cm}p{1.2cm}p{2.2cm}@{}}
+\toprule
+\textbf{Patent} & \textbf{Subject} & \textbf{Prio.} & \textbf{Notes}\\
+\midrule
+\endhead
+\patent{US10953303B2} & Impact when/where via fixed club points across
+  frames & 2017 & the OERT impact-location family \\
+\patent{US11439886B2} & Single camera, no markers or stereo & 2017 & \\
+\patent{US11612801B2} & Continuation & 2017 & \\
+\patent{US12263393B2} & Fix points + fix lines $\to$ 3D orientation &
+  2017 & \\
+\bottomrule
+\end{longtable}
+
+\subsection*{Radar+camera fusion, calibration, tracer, range, short game}
+\begin{longtable}{@{}p{2.5cm}p{8.2cm}p{1.2cm}p{2.2cm}@{}}
+\toprule
+\textbf{Patent} & \textbf{Subject} & \textbf{Prio.} & \textbf{Notes}\\
+\midrule
+\endhead
+\patent{US10052542B2} & Coordinating radar + image data; overlay &
+  2004 & \\
+\patent{US10471328B2} & Continuation & 2004 & \\
+\patent{US10989791B2} & Fused radar range/rate + imager angles track &
+  2016 & core fusion patent \\
+\patent{US11828867B2} & Continuation & 2016 & \\
+\patent{US11619708B2} & Inter-sensor calibration by track comparison &
+  2020 & \\
+\patent{US12517218B2} & Continuation: automatic calibration & 2020 & \\
+\patent{US11748985B2} & Master clock; composite multi-moment images &
+  2019 & \\
+\patent{US12067775B2} & Continuation & 2019 & \\
+\patent{US12586211B2} & Imager event detection; camera power-mode
+  switch & 2023 & not on legal page \\
+\patent{US9855481B2} & Broadcast tracer overlay & 2009 & 5-patent
+  family: also \patent{US10315093B2}, \patent{US10441863B2},
+  \patent{US11135495B2}, \patent{US11291902B2} \\
+\patent{US10379214B2} & Multi-bay range tracking (one radar, many
+  bays) & 2016 & also \patent{US11086005B2},
+  \patent{US11921190B2}, \patent{US12618962B2} \\
+\patent{US11452911B2} & Bay imager + range radar arbitration & 2019 &
+  also \patent{US11986698B2} \\
+\patent{US12036465B2} & Player ID via wearable + trajectory
+  correlation & 2021 & \\
+\patent{US12186643B2} & Camera line-of-sight $\cap$ terrain model
+  $\to$ ball rest position & 2021 & \\
+\patent{US10444339B2} & Bounce/slide/roll classification from velocity
+  profile & 2016 & also \patent{US11079483B2},
+  \patent{US11619731B2}, \patent{US11946997B2} (green speed) \\
+\patent{US11285367B2} & Strategy simulation from player capability &
+  2018 & also \patent{US12109473B2} \\
+\patent{US11951372B2} & Mishit filtering, optimal-shot analytics &
+  2020 & also \patent{US12539454B2} \\
+\patent{US12616891B2} & Automated ball/strike, biometric strike zone &
+  2021 & baseball; not on legal page \\
+\bottomrule
+\end{longtable}
+
+\section{Topgolf Sweden AB (Toptracer / Protracer)}
+
+A separate company from TrackMan; camera-first range tracking.
+\begin{longtable}{@{}p{2.5cm}p{8.2cm}p{1.2cm}p{2.2cm}@{}}
+\toprule
+\textbf{Patent} & \textbf{Subject} & \textbf{Prio.} & \textbf{Notes}\\
+\midrule
+\endhead
+\patent{US8077917B2} & Enhancing images in sports video (the founding
+  Protracer tracer, Forsgren) & 2006 & \\
+\patent{US10596416B2} & 3D tracking: radar + image data & 2017 &
+  also \patent{US11697046B2}, \patent{US12128275B2} \\
+\patent{US10898757B2} & 3D tracking: radar speed + 2D image & 2020 &
+  also \patent{US11504582B2}, \patent{US11883716B2},
+  \patent{US12330020B2} \\
+\patent{US11335013B2} & Motion-based pre-processing, virtual time
+  sync & 2020 & also \patent{US11557044B2}, \patent{US12322122B2} \\
+\patent{US11644562B2} & Trajectory extrapolation, origin
+  determination & 2020 & also \patent{US11771957B2},
+  \patent{US12121771B2}, \patent{US11964188B2} \\
+\patent{US11513208B2} & Camera-based projectile spin & 2021 & also
+  \patent{US12105184B2}; club-parameter spin
+  \patent{US12544624B2} \\
+\patent{US11995846B2} & Tracking with unverified detections & 2021 &
+  also \patent{US12361570B2} \\
+\patent{US11815618B2} & Doppler radar coexistence & 2021 & also
+  \patent{US12253622B2} \\
+\patent{US12206977B2} & Predictive camera control & 2022 & \\
+\patent{US12298326B2} & Wind velocity estimation & 2022 & \\
+\patent{US12594460B2} & Blob management for projectile tracking &
+  2023 & \\
+\bottomrule
+\end{longtable}
+
+\section{FlightScope / EDH (Henri Johnson)}
+
+\begin{longtable}{@{}p{2.5cm}p{8.2cm}p{1.2cm}p{2.2cm}@{}}
+\toprule
+\textbf{Patent} & \textbf{Subject} & \textbf{Prio.} & \textbf{Notes}\\
+\midrule
+\endhead
+\patent{WO2003032006A1} & Foundational golf-ball tracking: Doppler +
+  antenna array phase monopulse & 2001 & GB/WO only; expired art \\
+\patent{US8189857B2} & Bounce-mark detection + tracking (cricket) &
+  2007 & \\
+\patent{US9036864B2} & Trajectory and bounce position & 2011 &
+  reinstated \\
+\patent{US9868044B2} & Spin rate from phase modulation
+  (dielectric-lens) & 2013 & to $\sim$2034; reinstated \\
+\patent{US10775492B2} & Spin axis from perpendicular receiver pairs &
+  2013 & to $\sim$2035 \\
+\patent{US10338209B2} & Fusion Tracking (multi-receiver + camera) &
+  2015 & also \patent{US11016188B2} \\
+\patent{US11573082B2} & Tracking in varied environmental conditions &
+  2019 & \\
+\patent{US12528005B2} & Weather-based range prediction, club selector
+  & 2023 & \\
+\patent{US20160306036A1} & Putting-green tracking & 2013 &
+  abandoned; citable art \\
+\patent{US20180239012A1} & Antenna with boresight optical system &
+  2013 & abandoned; Fusion hardware disclosure \\
+\bottomrule
+\end{longtable}
+
+\section{Full Swing Golf}
+
+\begin{longtable}{@{}p{2.5cm}p{8.2cm}p{1.2cm}p{2.2cm}@{}}
+\toprule
+\textbf{Patent} & \textbf{Subject} & \textbf{Prio.} & \textbf{Notes}\\
+\midrule
+\endhead
+\patent{US11311789B2} & CW + FMCW dual-mode radar, non-uniform array
+  (the KIT patent; grant of US2020/0147470) & 2018 & to
+  $\sim$2039; also \patent{US11844990B2} \\
+\patent{US11875517B2} & Frame-difference ball tracking, screen impact
+  point & 2020 & also \patent{US12354282B2} \\
+\patent{US8758103B2} & IR light-curtain translation + imaging
+  rotation (legacy simulators) & 2009 & also \patent{US9616346B2},
+  \patent{US11033826B2} \\
+\patent{US8926416B2} & Simulator: spin via image analysis & 2007 &
+  also \patent{US10058733B2} \\
+\patent{US8414408B2} & Ball-permeable screen, ball return & 2009 &
+  also \patent{US8834284B2} \\
+\bottomrule
+\end{longtable}
+
+Caution: \patent{US10605910B2}/\patent{US11086008B2} (Alphawave Golf)
+and \patent{US11565166B2} (individual) surface in ``Full Swing'' text
+searches but are unrelated assignees.
+
+\section{Garmin}
+
+\patent{US11351436B2} --- ``Hybrid golf launch monitor'' (2019
+priority): the Approach R10 patent, Doppler radar with camera
+supplement/correction. Garmin's golf-radar estate is essentially this
+single family; supporting art: \patent{US8647214B2} (2008,
+motion-sensor swing analysis), \patent{US7467060B2} family (2006,
+wearable motion-parameter estimation).
+
+\section{Rapsodo Pte.\ Ltd.}
+
+\begin{longtable}{@{}p{2.5cm}p{8.2cm}p{1.2cm}p{2.2cm}@{}}
+\toprule
+\textbf{Patent} & \textbf{Subject} & \textbf{Prio.} & \textbf{Notes}\\
+\midrule
+\endhead
+\patent{US9955126B2} & Core camera+radar moving-object analysis &
+  2015 & \\
+\patent{US11170513B2} & Marked-ball spin via surface-template matching
+  & 2016 & the RPT-ball patent \\
+\patent{US11747461B2} & Radar+camera data fusion & 2018 & \\
+\patent{US20210299540A1} & 3D reconstruction of the launch scene &
+  2018 & application \\
+\patent{US20230065614A1} & Spin detection/estimation pipeline & 2021 &
+  application \\
+\patent{US20230364468A1} & Deep-learning ball/swing parameters from
+  radar+image & 2021 & also club-side
+  \patent{US20230070986A1} \\
+\patent{US12169941B1} & Target-plane crossing localization & 2024 & \\
+\patent{US12586248B2} & Newest camera+radar fusion grants & 2024 &
+  also \patent{US12548194B2} \\
+\patent{US12158517B1} & Range-gated imager & 2024 & \\
+\bottomrule
+\end{longtable}
+
+\section{Camera vendors: Foresight/Wintriss, Creatz/Uneekor, Golfzon}
+
+\subsection*{Foresight Sports (Wintriss $\to$ WAWGD $\to$ Wawgd Newco)}
+\begin{longtable}{@{}p{2.5cm}p{8.2cm}p{1.2cm}p{2.2cm}@{}}
+\toprule
+\textbf{Patent} & \textbf{Subject} & \textbf{Prio.} & \textbf{Notes}\\
+\midrule
+\endhead
+\patent{US5333874A} & IR light-curtain sports simulator (Kiraly/
+  Wintriss prehistory) & 1992 & expired \\
+\patent{US7292711B2} & Mono-camera photometric monitor; markerless
+  dimple-feature spin & 2002 & \textbf{expired Apr.\ 2025} \\
+\patent{US7324663B2} & Smart-camera sibling & 2002 &
+  \textbf{expired Aug.\ 2025} \\
+\patent{US7497780B2} & Integrated monitor UX (GC2 architecture) &
+  2006 & to 2027 \\
+\patent{US7540500B2} & Foldable monitor housing & 2006 & to
+  $\sim$2027 \\
+\patent{US7641565B2} & Ball-placement detection / auto-arm & 2006 &
+  to 2027 \\
+\patent{US8951138B2} & Club head measurement (camera + optional
+  inertial): face, path, loft/lie, impact & 2012 & the HMT/GCQuad
+  club-data patent \\
+\patent{US9737757B1} & Alignment-stick target alignment & 2016 & \\
+\patent{US10639537B2} & Range tracking fused with launch monitor
+  strike & 2018 & \\
+\bottomrule
+\end{longtable}
+
+\subsection*{Creatz Inc.\ (Uneekor)}
+\begin{longtable}{@{}p{2.5cm}p{8.2cm}p{1.2cm}p{2.2cm}@{}}
+\toprule
+\textbf{Patent} & \textbf{Subject} & \textbf{Prio.} & \textbf{Notes}\\
+\midrule
+\endhead
+\patent{US9448067B2} & Multi-camera (unsynchronized) trajectory via
+  projection-plane intersection & 2011 & to 2033 \\
+\patent{US9605960B2} & Single-camera plane-intersection trajectory &
+  2011 & to 2032 \\
+\patent{US9752875B2} & Exposure/gain control from ambient brightness &
+  2011 & to 2032 \\
+\patent{US10247553B2} & Start sensor: ball state at first movement &
+  2011 & to 2032 \\
+\patent{US10587797B2} & Ball-image brightness compensation for spin
+  marks & 2016 & to 2037 \\
+\patent{US10776929B2} & Dynamic ROI from predicted ball motion & 2016
+  & to 2037 \\
+\patent{US11191998B2} & Mark-based spin with model fallback & 2018 &
+  to 2039 \\
+\patent{US12008770B2} & Dimple-constellation markless spin (Dimple
+  Optix) & 2020 & to 2042 \\
+\bottomrule
+\end{longtable}
+Uneekor's marking page also lists the four licensed Wintriss/Foresight
+patents (US7497780, US7292711, US7641565,
+US7324663)~\cite{uneekorpatents,businesswireforesight}.
+
+\subsection*{Golfzon Co., Ltd.\ (sensing core)}
+\begin{longtable}{@{}p{2.5cm}p{8.2cm}p{1.2cm}p{2.2cm}@{}}
+\toprule
+\textbf{Patent} & \textbf{Subject} & \textbf{Prio.} & \textbf{Notes}\\
+\midrule
+\endhead
+\patent{US9242158B2} & Two-stage sensing $\to$ simulation (latency
+  hiding) & 2011 & to $\sim$2032 \\
+\patent{US9333409B2} & Ball-candidate 2D-trajectory analysis, low-fps
+  cameras & 2011 & also \patent{US9333412B2},
+  \patent{US9162132B2} \\
+\patent{US9514379B2} & Low-res launch + club trajectory $\to$ cheap
+  spin estimate & 2011 & \\
+\patent{US10045008B2} & Unsynchronized stereo cross-acquisition
+  (doubled frame rate) & 2011 & clever budget-hardware trick \\
+\patent{US11364428B2} & Spin fit by trajectory iteration vs.\ observed
+  positions & 2018 & \\
+\patent{US12002222B2} & Database spin lookup with correction & 2017 &
+  \\
+\patent{US12599828B2} & Marker-constellation spin between frames &
+  2022 & \\
+\patent{US12605593B2} & Rolling predictive ROI & 2022 & \\
+\patent{US12478849B2} & Single-camera putting-mat sensing & 2021 & \\
+\patent{US20230347209A1} & Stereo impact position on club face & 2021
+  & pending \\
+\bottomrule
+\end{longtable}
+
+\section{Acushnet (Titleist) --- the full lineage}
+
+\begin{longtable}{@{}p{2.5cm}p{8.2cm}p{1.2cm}p{2.2cm}@{}}
+\toprule
+\textbf{Patent} & \textbf{Subject} & \textbf{Prio.} & \textbf{Notes}\\
+\midrule
+\endhead
+\patent{US4136387A} & The ancestral optical impact/launch monitor &
+  1977 & expired \\
+\patent{US5471383A} & Shutterable cameras + retroreflective markers &
+  1992 & expired \\
+\patent{US5501463A} & Stereo + club/ball dots: face, path, contact
+  location & 1992 & expired \\
+\patent{US6241622B1} & Portable dual-camera + strobe; aerodynamic
+  trajectory & 1998 & expired; also \patent{US6533674B1}
+  (multishutter), \patent{US6616543B1}, \patent{US7086955B2} \\
+\patent{US6500073B1} & Stereo trajectory + flight integration & 1998
+  & expired \\
+\patent{US6758759B2} & Dual stereo monitors; measured face angle &
+  2001 & expired \\
+\patent{US7143639B2} & Portable four-camera monitor & 2004 & expired;
+  continuations \patent{US7395696B2} (optical fingerprinting,
+  expired), \patent{US8500568B2}, \patent{US8556267B2} \\
+\patent{US10668350B2} & Stereo / light-field ``true 3D'' capture &
+  2017 & to $\sim$2038 \\
+\patent{US6186002B1} & $C_D$/$C_L$ from measured trajectories & 1998
+  & calibration template \\
+\bottomrule
+\end{longtable}
+
+\section{Others and foundational radar art}
+
+\textbf{SkyTrak / SkyHawke:} \patent{US12515116B2} (2023, swing-tag +
+launch-monitor fusion display) is the only relevant grant; the SkyTrak
+photometric unit itself is unmarked. \textbf{AccuSport, Zelocity,
+GolfTek, Ernest Sports, ProTee United:} no attributable US patents
+found --- their methods rest on the expired Wintriss/Acushnet art.
+\textbf{Voice Caddie (Ucomm):} \patent{US10338212B2} (2014, portable
+Doppler swing/ball analyzer). \textbf{Sports Sensors (Dilz):}
+\patent{US6079269A} (1997 Swing Speed Radar),
+\patent{US6898971B2}, \patent{US8007367B2} (club speed + tempo) ---
+all expired, free art. \textbf{Weibel Scientific} (TrackMan's
+engineering origin): \patent{EP1735637B1} (2004 multi-antenna CW
+Doppler tracking), MFCW ranging family (2014). \textbf{Applied
+Concepts (Stalker):} \patent{US10935657B2} (2019, baseball spin via
+Doppler micro-modulation) and the autocorrelation continuation ---
+directly relevant prior art for radar spin outside golf.
+
+\begin{implication}
+The compendium sharpens the FTO picture of \cref{sec:fto}: the
+\emph{entire pre-2006 optical stack} (Acushnet 1977--2004, Wintriss
+2002) and the \emph{entire foundational radar-speed stack} (Sports
+Sensors, EDH 2001, Weibel 2004) are expired. What remains encumbered
+clusters in exactly three areas OpenFlight should treat carefully:
+radar spin extraction (TrackMan 2005 family to $\sim$2029; FlightScope
+2013 families to $\sim$2034--35; Applied Concepts 2019), markerless
+camera club/impact measurement (TrackMan 2017 family; Foresight 2012
+US8951138), and radar+camera fusion (TrackMan 2016/2020 families,
+FlightScope 2015, Rapsodo 2018--24, Topgolf Sweden 2017--23).
+\end{implication}

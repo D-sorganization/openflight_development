@@ -17,7 +17,7 @@ Target build: **current-generation stack** — OPS243 (speed/spin) + IWR6843LEVM
 
 | Item | Qty | Notes / action needed |
 |------|-----|----------------------|
-| TI IWR6843 mmWave radar | 1 | ⚠️ **Confirm the exact variant is IWR6843LEVM** (~$150, 60 GHz, 3 TX × 4 RX, CP2105 dual-UART USB bridge). The upstream firmware image (`firmware/releases/l3_dump_vTX2_hwa_window53_12loops_18frames_4ms_v2.bin`), the `.cfg`, the flashing procedure (boot switch S1.1 + RESET), and the validated enclosure geometry are all LEVM-specific. An **IWR6843ISK** or **IWR6843AOPEVM** is *not* a drop-in substitute (different antenna array/orientation, different board). If the order is a different variant, swap it before it ships. |
+| TI IWR6843LEVM mmWave radar | 1 | ✅ **Variant confirmed 2026-07-31:** Digi-Key **296-IWR6843LEVM-ND**, MFG Texas Instruments **IWR6843LEVM** — exactly the board upstream targets (~$150, 60 GHz, 3 TX × 4 RX, CP2105 dual-UART USB bridge; firmware image, `.cfg`, S1 flash procedure, and enclosure geometry are all LEVM-specific). On arrival: verify silkscreen, identify USB connector type (data-capable cable), confirm S1 boot switch + RESET access — tracked in issue #8. |
 
 ## Need to buy — core (blocks the build)
 
@@ -78,7 +78,7 @@ Upstream README: reflective stickers/dots improve angle-radar returns but wreck 
 ## Open verification tasks (tracked as issues)
 
 1. Inspect both OPS243 units — confirm neither is the `-W` WiFi variant; label them A (build) and B (bench).
-2. Confirm the IWR6843 order line-item is **IWR6843LEVM**.
+2. ~~Confirm the IWR6843 order line-item is **IWR6843LEVM**.~~ ✅ Done 2026-07-31 — Digi-Key 296-IWR6843LEVM-ND confirmed.
 3. When the LEVM arrives: identify its USB connector type, buy the matching data cable if not on hand.
 4. Decide display (HMTECH vs Touch Display 2) before printing case parts.
 5. Check upstream `cad/` and issues for an IWR6843 case mount; if absent, plan to design one.

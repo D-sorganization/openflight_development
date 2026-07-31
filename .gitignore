@@ -1,0 +1,21 @@
+# OS cruft
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editors
+.vscode/
+.idea/
+
+# Python scratch
+__pycache__/
+*.pyc
+.venv/
+
+# Session data too large for git (keep summaries, not raw dumps)
+*.l3dump
+session_*.jsonl
+*.pkl
+
+# Local-only scratch
+scratch/

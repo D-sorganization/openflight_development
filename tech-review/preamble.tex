@@ -1,0 +1,67 @@
+% Shared preamble for the OpenFlight launch monitor technology review
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,bm}
+\usepackage{siunitx}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc,angles,quotes}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage[hidelinks,pdfusetitle]{hyperref}
+\usepackage[capitalise,noabbrev]{cleveref}
+
+% Color scheme
+\definecolor{ofblue}{RGB}{20,60,110}
+\definecolor{ofgray}{RGB}{90,95,100}
+\definecolor{ofgreen}{RGB}{25,110,60}
+
+\titleformat{\chapter}[display]
+  {\normalfont\huge\bfseries\color{ofblue}}
+  {\chaptertitlename\ \thechapter}{12pt}{\Huge}
+\titlespacing*{\chapter}{0pt}{0pt}{24pt}
+\titleformat*{\section}{\Large\bfseries\color{ofblue}}
+\titleformat*{\subsection}{\large\bfseries\color{ofgray}}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\itshape OpenFlight Technology Review}
+\fancyhead[R]{\small\itshape\nouppercase{\leftmark}}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\sisetup{per-mode=symbol,range-phrase=--,range-units=single}
+
+% Convenience macros
+\newcommand{\degs}{\si{\degree}}
+\newcommand{\mph}{\,mph}
+\newcommand{\rpm}{\,rpm}
+\newcommand{\patent}[1]{\href{https://patents.google.com/patent/#1}{#1}}
+\newcommand{\vect}[1]{\bm{#1}}
+\newcommand{\uvec}[1]{\hat{\bm{#1}}}
+
+% Callout box for design implications
+\usepackage[most]{tcolorbox}
+\newtcolorbox{implication}{
+  colback=ofgreen!6, colframe=ofgreen!70!black,
+  title=Implication for OpenFlight, fonttitle=\bfseries,
+  boxrule=0.6pt, arc=2pt, left=6pt, right=6pt, top=4pt, bottom=4pt,
+  breakable
+}
+\newtcolorbox{keypoint}{
+  colback=ofblue!5, colframe=ofblue!70,
+  title=Key point, fonttitle=\bfseries,
+  boxrule=0.6pt, arc=2pt, left=6pt, right=6pt, top=4pt, bottom=4pt,
+  breakable
+}

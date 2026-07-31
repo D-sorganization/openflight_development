@@ -19,3 +19,11 @@ session_*.jsonl
 
 # Local-only scratch
 scratch/
+
+# LaTeX build artifacts
+tech-review/*.aux
+tech-review/*.log
+tech-review/*.out
+tech-review/*.toc
+tech-review/*.lof
+tech-review/*.lot

@@ -1,0 +1,106 @@
+\chapter{Ball Flight Models and Trajectory Estimation}
+\label{ch:flight}
+
+Both sensing families depend on an aerodynamic model: cameras integrate
+it forward from measured launch to get carry; radars fit it to partial
+trajectories to extract spin axis and to extrapolate indoor flights.
+
+\section{Equations of motion}
+
+With air density $\rho$, ball radius $R = 21.34$\,mm, mass
+$m = 45.93$\,g, cross-section $A = \pi R^2$, and airspeed
+$\vect{v}_a = \vect{v} - \vect{v}_{\mathrm{wind}}$:
+\begin{equation}
+\label{eq:eom}
+m\,\frac{d\vect{v}}{dt} =
+  -\tfrac{1}{2}\rho A C_D \lVert\vect{v}_a\rVert\, \vect{v}_a
+  \;+\; \tfrac{1}{2}\rho A C_L \lVert\vect{v}_a\rVert^2
+     \,(\hat{\vect{\omega}} \times \hat{\vect{v}}_a)
+  \;+\; m\vect{g},
+\end{equation}
+with the drag and lift coefficients functions of Reynolds number
+$\mathrm{Re} = 2R\lVert\vect{v}_a\rVert/\nu$ and spin ratio
+$S = R\omega/\lVert\vect{v}_a\rVert$. Fourth-order Runge--Kutta
+integration is ample; carry is evaluated where the trajectory returns to
+launch elevation. Tilting the spin axis by $\theta$ rotates the Magnus
+force off vertical, giving lateral acceleration
+$(F_M/m)\sin\theta$ --- the mechanism behind the 0.7\%-per-degree
+side-curve rule and \cref{eq:spincomponents}.
+
+\section{Aerodynamic coefficient data}
+
+\begin{description}
+\item[Bearman \& Harvey (1976)~\cite{bearmanharvey}.] The canonical
+wind-tunnel dataset on spinning golf-ball models across the flight
+envelope. Dimples drop the critical Reynolds number to
+$\sim5\times10^4$; post-critical $C_D \approx 0.25$ is nearly
+Re-independent; $C_L$ rises with spin ratio from $\approx$0.08 to 0.25
+over $S \approx 0.02$--0.3; hexagonal dimples outperform round ones.
+\item[Smits \& Smith (1994)~\cite{smitssmith}.] The parameterized model
+most widely used in simulators:
+\begin{equation}
+\label{eq:smits}
+C_D = C_{D1} + C_{D2}\,S + C_{D3}\sin\!\bigl(\pi\,
+  \tfrac{\mathrm{Re}-A_1}{A_2}\bigr),
+\qquad
+C_L = C_{L1} S^{0.4},
+\end{equation}
+with $C_{D1}=0.24$, $C_{D2}=0.18$, $C_{D3}=0.06$, $A_1=9\times10^4$,
+$A_2=2\times10^5$, $C_{L1}\approx0.54$, plus a spin-decay law with time
+constant $\approx24$\,s at 100\,mph (roughly 4\%/s early in flight).
+\item[Quintavalla / USGA Indoor Test Range (2002)~\cite{quintavalla}.]
+Six-term polynomial $C_D$/$C_L$ models in Re and $S$ fitted from
+trajectory photography on the USGA ITR; captures the low-speed
+end-of-flight regime better than wind tunnels; the basis of USGA Overall
+Distance Standard conformance testing. The companion method patent
+US6186002~\cite{us6186002} --- determining coefficients from measured
+trajectories --- is the template for calibrating an open model against
+real flights.
+\end{description}
+
+\begin{implication}
+OpenFlight should ship Smits--Smith (\cref{eq:smits}) with spin decay as
+the default flight model, structured so a Quintavalla-style six-term fit
+can drop in, and calibrate against measured outdoor trajectories (or
+MLM2PRO reference data) using the US6186002 trajectory-fitting approach.
+Carry disagreements between simulators are dominated by model choice, not
+launch measurement --- version the model and record it with every shot log.
+\end{implication}
+
+\section{Trajectory estimation and filtering}
+\label{sec:ekf}
+
+The estimation core of a radar launch monitor is a nonlinear filtering
+problem. State $\vect{x} = (\vect{p}, \vect{v}, S, \theta_{\mathrm{axis}})$;
+process model = \cref{eq:eom}; measurement models:
+radar $h(\vect{x}) = (r, \mathrm{az}, \mathrm{el}, \dot r)$ with
+$\dot r = \vect{v}\cdot\hat{\vect{p}}$, camera $h(\vect{x})$ = pixel
+projections. An extended (or unscented) Kalman filter runs the standard
+recursion; launch parameters are then obtained by \emph{smoothing and
+back-extrapolation} --- fit the entire observed arc and evaluate the state
+at the moment of face separation, which is far more robust than
+differencing the first noisy fixes. Including
+$\theta_{\mathrm{axis}}$ in the state makes spin-axis-from-curvature
+(\cref{sec:spinaxis}) fall out of the filter naturally, and per-measurement
+confidence weighting is the clean way to fuse heterogeneous sensors
+(OPS243-A speed, K-LD7 angles, future camera fixes).
+
+\begin{implication}
+OpenFlight currently correlates K-LD7 angle bursts with the OPS243-A
+impact timestamp and reads angles from single detections. Migrating to a
+short EKF smoother over the full K-LD7 ring-buffer burst --- even 10--20
+detections over 50\,ms --- would use all available data, reject outlier
+bins, and yield launch angles with quantified covariance. The same filter
+skeleton later absorbs camera measurements unchanged.
+\end{implication}
+
+\section{Indoor extrapolation and its errors}
+
+Indoors, every system integrates \cref{eq:eom} from launch conditions.
+Error propagation is dominated by spin uncertainty: at driver speeds,
+$\pm300$\,rpm maps to roughly $\pm4$--6\,yd of carry and $\pm1$\,yd of
+side; a $\pm2\degs$ spin-axis error at 2,500\,rpm maps to $\pm3$--4\,yd
+of side at 250\,yd carry. This is why the accuracy literature
+(\cref{ch:accuracy}) finds spin to be the fragile channel indoors for
+radar, and why camera systems --- which measure spin directly --- win the
+indoor comparison structurally.

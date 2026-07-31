@@ -1,0 +1,89 @@
+\chapter{Introduction}
+\label{ch:intro}
+
+\section{Purpose and scope}
+
+A golf launch monitor answers two questions for every shot: \emph{what did
+the club do through impact} (delivery), and \emph{what did the ball do after
+impact} (launch and flight). Commercial systems answer these questions with
+strikingly different sensor architectures --- continuous-wave Doppler radar,
+multi-camera photogrammetry, and, increasingly, fusions of the two --- yet
+they all implement the same underlying physics: an oblique-impact collision
+model connecting club delivery to ball launch, and an aerodynamic model
+connecting ball launch to flight.
+
+This review is written to support the development of
+\textbf{OpenFlight}\footnote{\url{https://github.com/jewbetcha/openflight}
+--- AGPL-3.0; a DIY launch monitor built on the OmniPreSense OPS243-A
+24\,GHz Doppler radar, RFbeam K-LD7 angle radars, a sound-trigger board, and
+a Raspberry~Pi~5.}, an open-source launch monitor. Its goals are:
+
+\begin{enumerate}[itemsep=2pt]
+  \item catalogue \emph{how each major commercial system works}, at the level
+        of radar physics, imaging geometry, and signal processing;
+  \item establish, parameter by parameter, \emph{what is measured directly,
+        what is inferred through a model, and what is essentially
+        estimated} --- especially for club-delivery data such as face angle
+        and club path;
+  \item survey the governing \emph{patent landscape}, since the strongest
+        public documentation of these proprietary methods is found in the
+        patents themselves, and since freedom-to-operate matters to an
+        open-source project;
+  \item collect the \emph{physics and algorithms} (D-plane, impact mechanics,
+        gear effect, aerodynamic coefficients, spectral spin estimation,
+        stereo triangulation, Kalman filtering) that any implementation
+        needs; and
+  \item translate all of the above into \emph{concrete design guidance} for
+        OpenFlight's radar-first architecture and its possible optical
+        extensions.
+\end{enumerate}
+
+\section{The two sensing families}
+
+\textbf{Doppler radar} systems (TrackMan, FlightScope, Garmin Approach R10,
+Full Swing KIT) illuminate the hitting area and downrange volume with a
+microwave carrier and extract target radial velocity from the Doppler shift.
+Multiple receive antennas turn a velocity sensor into a 3D tracker via phase
+interferometry (\cref{ch:radar}). Radar excels outdoors: it tracks the
+entire flight, so carry and curvature are \emph{observed}, not modeled. Its
+weaknesses are at the club face --- radar cannot see face orientation
+directly --- and indoors, where a screen truncates the observable flight.
+
+\textbf{Photometric (camera)} systems (Foresight GC-series, Uneekor,
+SkyTrak, ProTee VX, Garmin R50) capture a burst of high-speed, IR-strobed
+stereo images over the first $\sim$30\,cm of ball flight and reconstruct
+position and orientation photogrammetrically (\cref{ch:camera}). They
+measure launch conditions --- including 3D spin from dimple-pattern rotation
+--- essentially perfectly for simulator purposes, then \emph{model} the
+flight. Their weakness is the mirror image of radar's: everything downrange
+of the capture volume is simulated, and club data requires either fiducial
+stickers on the face or an overhead viewing geometry.
+
+The market's convergent evolution is the single most instructive fact for a
+new design: \emph{every} high-end vendor has concluded that neither modality
+suffices alone. TrackMan added cameras to its radar (OERT, \cref{sec:oert});
+FlightScope added Fusion Tracking cameras; SkyTrak added radar to its
+camera; Rapsodo pairs radar with impact cameras; Full Swing feeds a camera
+into its radar ML pipeline. \Cref{ch:survey} tabulates the landscape.
+
+\section{Reading guide}
+
+\Cref{ch:params} fixes terminology and coordinate conventions
+(TrackMan's definitions, the de~facto industry standard).
+\Cref{ch:impact} develops the impact physics connecting club delivery to
+ball launch --- the D-plane model, spin generation, and gear effect --- which
+every monitor uses either forward (simulation) or inverse (parameter
+estimation). \Cref{ch:radar,ch:camera} treat the two sensing families in
+depth. \Cref{ch:survey} surveys the commercial devices.
+\Cref{ch:patents} maps the patent landscape with expiry status.
+\Cref{ch:flight} covers ball-flight aerodynamics and trajectory estimation.
+\Cref{ch:accuracy} reviews the independent validation literature.
+\Cref{ch:implications} distills the implications for OpenFlight.
+
+\begin{keypoint}
+Throughout, we use a right-handed coordinate system for a right-handed
+golfer: $x$ down the target line, $y$ up, $z$ to the golfer's right.
+Angles are positive right/up. All club-delivery values are referenced to
+the moment of \emph{maximum ball compression}; all ball-launch values to
+the moment of \emph{separation from the face}.
+\end{keypoint}

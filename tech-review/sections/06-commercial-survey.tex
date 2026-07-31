@@ -1,0 +1,129 @@
+\chapter{Commercial System Survey}
+\label{ch:survey}
+
+\Cref{tab:survey} summarizes the sensing architecture of the major
+systems; the notes that follow give the technically salient details per
+device, with sources in the bibliography.
+
+\begin{table}[htbp]
+\centering\footnotesize
+\caption{Launch monitor architecture survey (2026). ``Club source''
+distinguishes directly measured face data (optical) from D-plane-inverted
+or model-estimated face data.}
+\label{tab:survey}
+\begin{tabular}{@{}p{2.6cm}p{3.3cm}p{2.6cm}p{2.9cm}p{2.9cm}@{}}
+\toprule
+\textbf{System} & \textbf{Primary sensing} & \textbf{Spin method} &
+\textbf{Club data source} & \textbf{Impact location} \\
+\midrule
+TrackMan 4 & Dual radar (X-band + 24\,GHz) + camera (OERT) &
+  Doppler sidebands & Radar silhouette + camera & Yes (markerless, OERT) \\
+TrackMan iO & 24\,GHz radar + 4{,}600\,fps camera & Camera + radar &
+  Radar + camera & Yes (markerless) \\
+FlightScope X3 & Phased-array multi-freq.\ radar + Fusion cameras &
+  Doppler (dielectric-lens) & Radar; face derived & No \\
+FlightScope Mevo+ & X-band 10.5\,GHz phased array (+ Pro cameras) &
+  Doppler; stickers indoors & Radar; face derived & No \\
+Garmin R10 & 24\,GHz, 3-receiver CW & Doppler ($\ge$20\,m flight) or
+  model & Radar; face calculated & No \\
+Garmin R50 & 3 high-speed cameras & Dimple imaging & Optical
+  (fiducials) & Yes \\
+Full Swing KIT & 24\,GHz CW+FMCW + 4K camera ML & Doppler + ML &
+  Radar + ML & No \\
+Rapsodo MLM2PRO & Radar + 2$\times$240\,fps cameras & Marked ball
+  (RPT/RCT) & Radar; face derived & Video only \\
+Foresight GCQuad / QuadMAX & 4 cameras, IR strobe & Spherical
+  correlation & Optical (4 fiducials) & Yes (measured) \\
+GC3 / Launch Pro & 3 cameras, IR strobe & Spherical correlation &
+  Optical (fiducials; add-on) & Yes \\
+GCHawk & 4 cameras, ceiling & Spherical correlation & Optical &
+  Yes \\
+Uneekor EYE XO2 & 3 overhead IR cameras, 3{,}000+\,fps & Dimple Optix &
+  Optical, sticker-free & Yes + video \\
+Uneekor EYE MINI & 2 cameras, portable & Dimple Optix & Optical
+  (stickers) & Yes \\
+ProTee VX & 2 overhead cameras + ML & Dimple imaging & Optical,
+  sticker-free & Yes \\
+SkyTrak+ / ST MAX & Cameras (ball) + dual radar (club) & Photometric &
+  Radar; face derived & No \\
+OpenFlight (current) & OPS243-A 24\,GHz + 2$\times$K-LD7 + sound trigger &
+  Doppler I/Q buffer ($\sim$50--60\% detect) & Radar; no face data yet &
+  No \\
+PiTrac (DIY) & 2 Pi GS cameras + IR strobe & Dimple registration &
+  None yet & No \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Radar-first systems}
+
+\textbf{TrackMan 4 / iO.} The reference radar architecture: two
+synchronized radar subsystems (long-range X-band at the corners for full
+ball flight; higher-frequency 24\,GHz at the center for club and impact),
+receivers sampled at 40\,ksps to pin the impact instant, fused with an
+OERT camera~\cite{fccTman4,trackmanoert,trackmanspecs}. Reports 27+
+parameters including swing plane/direction, low point, dynamic lie, and
+D-plane-derived face data; requires $\ge4.7$\,m of indoor throw. The iO is
+the indoor-optimized repackaging: 24\,GHz radar, 4,600\,fps club/ball
+camera, IR illumination, no minimum-space requirement.
+
+\textbf{FlightScope X3 / Mevo+.} Phased-array Doppler (X3:
+multi-frequency with direct ranging; Mevo+: X-band 10.5--10.55\,GHz per
+FCC filings~\cite{mevoteardown}) with Fusion Tracking cameras on the X3
+and Mevo+ Pro. Spin measured via the patented dielectric-lens
+phase-demodulation route (\cref{sec:patentflightscope}); metallic
+stickers recommended for short indoor flights. FlightScope's 2022 win
+against TrackMan at the German Federal Court of Justice, after losing the
+2013 EP\,1\,698\,380 case, bookends two decades of radar-spin litigation
+between the two~\cite{flightscopebgh}.
+
+\textbf{Garmin Approach R10.} The instructive budget case: a 24\,GHz
+three-receiver CW radar that directly measures only the safe primitives
+--- ball speed, launch angles, club speed, club path --- and models the
+rest. Spin requires $\ge$20\,m of flight and $>$90\,mph ball speed (or an
+RCT marked ball indoors); face angle is explicitly a calculated value at
+$\pm2\degs$~\cite{garminr10accuracy,garminr10data}. Garmin's step-up
+R50 abandons radar entirely for three cameras --- a telling modality
+switch for indoor accuracy.
+
+\textbf{Full Swing KIT.} The patented CW+FMCW dual-mode 24\,GHz radar
+(\cref{sec:fmcw}) with an ML vision assist from its 4K camera; 16
+parameters; third-party testing places it within 1--2\% of
+TrackMan/GCQuad in most conditions~\cite{fullswingkit}.
+
+\textbf{Rapsodo MLM2PRO.} Radar for speed/launch plus two 240\,fps
+cameras that read printed RPT/RCT ball markers for measured spin rate and
+axis (claimed within 1\% of reference units) --- the cheapest route to
+\emph{measured} spin, at the cost of proprietary
+balls~\cite{mygolfspymlm2pro}.
+
+\section{Camera-first systems}
+
+\textbf{Foresight GCQuad / QuadMAX / GCHawk.} Quadrascopic IR-strobed
+capture ($\sim$200 images/shot); spherical-correlation spin; four-dot
+fiducial club measurement with closure rate and measured impact location
+(\cref{sec:camclub})~\cite{foresightgcquad,foresighthmt}. Robot testing
+shows the class-leading spin repeatability
+(\cref{ch:accuracy}).
+
+\textbf{GC3 / Bushnell Launch Pro.} Identical triscopic hardware in two
+brands; club data is a paid add-on tier using the same
+stickers~\cite{playbetterblp}.
+
+\textbf{Uneekor EYE XO2 / EYE MINI / ProTee VX.} Overhead sticker-free
+club measurement (XO2, VX) versus portable sticker-based (EYE MINI);
+Dimple Optix markerless spin; impact video replay~\cite{uneekoreyexo,
+proteevx}.
+
+\textbf{SkyTrak+ / ST MAX.} The camera-to-radar convergence case: the
+original photometric ball-only SkyTrak gained a dual-radar club module and
+ML fusion in the SkyTrak+~\cite{skytrakplus}.
+
+\section{Open-source systems}
+
+\textbf{OpenFlight} (radar-first: OPS243-A I/Q rolling buffer + sound
+trigger + K-LD7 interferometric angle radars) and \textbf{PiTrac}
+(camera-first: strobed multi-exposure global-shutter imaging) occupy the
+two ends of the same spectrum the commercial market spans, at roughly
+1/10th the hardware cost. Neither yet measures club face data; both have
+clear, patent-informed paths to it (\cref{ch:implications}).

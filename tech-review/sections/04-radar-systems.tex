@@ -1,0 +1,257 @@
+\chapter{Doppler Radar Systems}
+\label{ch:radar}
+
+\section{Continuous-wave Doppler fundamentals}
+\label{sec:cwdoppler}
+
+A CW radar transmits a carrier at frequency $f_c$ (wavelength $\lambda$)
+and receives echoes shifted by the Doppler effect. For a target with
+radial velocity $v_r$,
+\begin{equation}
+\label{eq:doppler}
+f_d = \frac{2 v_r}{\lambda} = \frac{2 f_c v_r}{c}.
+\end{equation}
+At the 24.125\,GHz K-band center frequency used by the OPS243-A (and the
+Garmin R10, Full Swing KIT, original Mevo), each 1\,mph of radial speed
+produces $\approx71.7$\,Hz of shift; at X-band ($\sim$10.5\,GHz, TrackMan's
+long-range subsystem and the Mevo+) the constant is
+$\approx31.3$\,Hz/mph. A spinning, translating golf ball is not a point
+target: every surface patch has its own radial velocity, so the return is a
+velocity \emph{spectrum} whose structure carries the spin information
+(\cref{sec:radarspin}).
+
+Band choice is a range-vs-resolution trade. X-band supports long-range
+full-flight tracking (TrackMan tracks the entire $\sim$6\,s flight);
+24\,GHz gives finer velocity resolution per unit observation time and
+compact low-power hardware, but consumer 24\,GHz units track only
+$\sim$30\,yd of flight~\cite{fccTman4,mevoteardown,garminr10data}.
+
+\section{From velocity sensor to 3D tracker: phase interferometry}
+\label{sec:interferometry}
+
+A single-channel Doppler radar measures radial speed only. Every serious
+launch monitor adds \emph{multiple receive antennas} and measures the
+\emph{phase difference} of the return across receiver pairs
+(phase-comparison monopulse / interferometry). A wavefront arriving from
+direction $\uvec{u}$ reaches two antennas separated by baseline $\vect{d}$
+with time delay $\tau = (\vect{d}\cdot\uvec{u})/c$, observed after mixing
+as a phase difference
+\begin{equation}
+\label{eq:interferometry}
+\Delta\varphi = 2\pi f_c \tau \ (\mathrm{mod}\ 2\pi)
+\quad\Longrightarrow\quad
+u = \frac{\lambda\,\Delta\varphi}{2\pi d},
+\end{equation}
+where $u$ is the direction cosine along the baseline. Two orthogonal
+baselines give azimuth and elevation; the $2\pi$ ambiguities are resolved
+with more than three antennas at staggered spacings (TrackMan
+US\,9,958,527~\cite{us12186643}). Combined with range (from
+multi-frequency CW phase differences or an FMCW chirp) and range rate
+(Doppler), the radar produces a full 3D track $(r,\mathrm{az},
+\mathrm{el},\dot r)$ per epoch. Tuxen's spin-axis patent describes exactly
+this ``phase--phase monopulse comparison \ldots\ or interferometry'' across
+three receivers~\cite{us10850179}; the Garmin R10 uses a three-receiver
+24\,GHz array the same way~\cite{garminr10data}; FlightScope describes its
+aperture as a phased antenna array~\cite{flightscopex3}.
+
+\begin{implication}
+OpenFlight's architecture --- OPS243-A for speed plus two K-LD7 modules for
+vertical and horizontal angles --- is a physically separated version of
+what commercial units do on one board: the K-LD7's RADC mode exposes raw
+ADC data from its two receive patches, and per-bin phase comparison
+\cref{eq:interferometry} yields the angle of each detection. The
+commercial lesson is that angle accuracy is limited by baseline length,
+SNR, and mutual calibration; a rigid mechanical mount and a one-time
+angular calibration against surveyed targets matter more than any software
+refinement.
+\end{implication}
+
+\section{CW + FMCW hybrids}
+\label{sec:fmcw}
+
+Full Swing's patent application US\,2020/0147470~\cite{fullswingpatent} is
+the clearest public description of a hybrid launch-monitor radar: two
+$\sim$24\,GHz transmitters, time-division multiplexed, one CW and one
+linear-FMCW. The CW channel provides club speed, ball speed, spin, and
+launch-window angles from Doppler; the FMCW chirp provides direct range to
+250\,m+, carry, and side displacement from beat-frequency and phase
+measurements. The antenna layout is deliberately \emph{non-uniform} ---
+four receive antennas symmetric about the axis, two transmit antennas
+placed asymmetrically --- to enrich the phase/frequency structure of the
+receive signal. FlightScope's X3 similarly advertises ``multi-frequency
+radar with direct distance measurement''~\cite{flightscopex3}.
+
+\section{Ball measurement}
+
+\subsection{Speed and launch angles}
+
+Ball speed is read from the dominant Doppler line immediately after
+impact; launch angles come from the interferometric track over the first
+meters of flight. These are the most directly measured quantities in the
+whole parameter set and show the best inter-device agreement in every
+independent study (\cref{ch:accuracy}). Because the radar sits behind
+(or above) the ball, the measured radial speed underestimates the true
+speed by the cosine of the aspect angle; commercial units correct this
+using the tracked geometry, and the correction is largest for high launch
+angles and close radar placement.
+
+\subsection{Spin rate: the harmonic-sideband method}
+\label{sec:radarspin}
+
+The foundational method is Tuxen's patent
+US\,8,845,442~\cite{us8845442} (EP\,1\,698\,380). A golf ball's dimples,
+paint, logo, seam, and core asymmetry make its radar cross-section vary
+periodically as it rotates. A surface feature at radius $r$ contributes a
+Doppler term
+\begin{equation}
+f_{d,\mathrm{feature}}(t) = \frac{2}{\lambda}
+  \bigl(v_r - r\,\omega \sin\omega t\bigr),
+\end{equation}
+i.e.\ frequency modulation of the return at the spin frequency
+$\omega/2\pi$ with deviation $(2/\lambda) r\omega$. The received spectrum
+therefore shows the main translational Doppler line flanked by
+\textbf{equally spaced harmonic sidebands} at
+\begin{equation}
+\label{eq:sidebands}
+f = f_{d} \pm n\,f_{\mathrm{spin}}, \quad n = 1,2,3,\ldots
+\qquad\Longrightarrow\qquad
+S\,[\mathrm{rpm}] = 60\,\Delta f_{\mathrm{sideband}}.
+\end{equation}
+The patented processing chain: (1) track the central velocity trace
+through the short-time Fourier transform; (2) detect symmetric sideband
+peaks; (3) track them over time as spectral traces; (4) \emph{qualify}
+harmonics by verifying constant equal spacing across consecutive FFT
+frames; (5) solve the harmonic-number assignment; (6) divide trace offset
+by harmonic number~\cite{us8845442,trackmanspinpatentblog}. In practice a
+cepstrum or harmonic-product-spectrum estimator finds the comb spacing
+robustly.
+
+Two practical corollaries: sideband SNR depends on ball-surface asymmetry
+(pristine two-piece range balls read weakly --- the origin of
+``marked-ball'' modes and Titleist RCT balls with embedded metal tags);
+and the comb yields spin \emph{rate} only --- the axis must come from
+elsewhere.
+
+\subsection{Spin axis: trajectory inversion}
+\label{sec:spinaxis}
+
+The same patent discloses the standard radar route to spin axis. From the
+differentiated 3D track, total acceleration $\vect{A}$ decomposes as
+$\vect{A} = \vect{g} + \vect{D} + \vect{L}$ with drag $\vect{D}$
+antiparallel to the airspeed vector and Magnus lift $\vect{L}$
+perpendicular to both the spin axis and the velocity. Projecting out
+gravity and drag,
+\begin{equation}
+\label{eq:liftextract}
+\vect{D} = \Bigl[\frac{(\vect{A}-\vect{g})\cdot\vect{v}_a}
+  {\lVert\vect{v}_a\rVert^2}\Bigr]\vect{v}_a,
+\qquad
+\vect{L} = \vect{A} - \vect{g} - \vect{D},
+\end{equation}
+and the orthogonality constraint $\vect{L}\cdot\hat{\vect{\omega}} = 0$,
+stacked over many trajectory points, gives an overdetermined linear system
+for the spin-axis direction $\hat{\vect{\omega}}$~\cite{us8845442}. This
+works well outdoors with seconds of observed flight; indoors, with
+2--6\,m of flight before the screen, the curvature signal is tiny and the
+axis becomes an estimate. FlightScope patented a direct alternative ---
+time delays between vertically and horizontally separated receiver pairs
+yield the axis angle
+$\Phi = \arctan[S_H T_H / (S_V T_V)]$~\cite{us10775492} --- precisely to
+recover the axis at short range.
+
+\subsection{Flight: tracked outdoors, modeled indoors}
+
+Outdoors, TrackMan-class units report \emph{measured} carry, apex, and
+landing angle from the full track. Indoors every radar unit observes only
+the pre-screen segment (TrackMan~4 requires $\ge4.7$\,m of throw;
+FlightScope claims 8\,ft suffices with Fusion Tracking) and extrapolates
+with an aerodynamic model anchored to the vendor's measured-flight
+database~\cite{trackmanspecs,homeperformancelab}. The Garmin R10
+illustrates the consumer floor: it requires $\ge$20\,m of visible flight
+and ball speed above $\sim$90\,mph to measure spin at all; otherwise spin
+is estimated by a fitted model from the measured
+inputs~\cite{garminr10accuracy}.
+
+\section{Club measurement}
+\label{sec:radarclub}
+
+\subsection{What the radar tracks on the head}
+
+The clubhead is a large, complex reflector whose parts move at different
+speeds (toe faster than heel by up to $\sim$7\mph{} on a driver). TrackMan
+defines club speed at the head's \emph{geometric center} and reconstructs
+that point by ``directly measuring the 3D silhouette of the club
+head''~\cite{trackmanclubspeed}; naive processors lock onto the strongest
+or fastest return and systematically over-report. Attack angle and club
+path are the vertical and horizontal direction of the geometric center's
+velocity at impact; swing plane, swing direction, and low point are
+properties of the center's trajectory arc through the hitting zone.
+
+\subsection{Face angle and dynamic loft}
+\label{sec:faceangle}
+
+Radar cannot see face orientation. On radar-only systems, face angle and
+dynamic loft are obtained by \emph{inverting the D-plane collision model}
+(\cref{sec:facepathweighting}): given measured launch direction, club
+path, and the loft-dependent weighting $w_f$,
+\begin{equation}
+\label{eq:faceinversion}
+\varphi_f = \frac{\varphi_{\mathrm{launch}} - (1-w_f)\,\varphi_p}{w_f},
+\end{equation}
+and analogously dynamic loft from launch angle and attack angle. TrackMan
+has confirmed these are ``derived numbers from direct measurements and a
+collision model,'' validated by robot testing~\cite{manzellaforum}. On
+TrackMan~4/iO with OERT (\cref{sec:oert}), the company's position is that
+club delivery including face angle at the contact point is measured via
+synchronized radar+camera silhouette tracking rather than back-computed
+--- though the exact split remains proprietary. Consumer units are
+explicit about the hierarchy: Garmin specifies launch direction at
+$\pm1\degs$ (measured) but face angle at $\pm2\degs$ and classifies it as
+calculated~\cite{garminr10accuracy}.
+
+\begin{keypoint}
+The reported ``face angle'' on a radar launch monitor is, to first order,
+a rescaled launch direction. It inherits launch-direction bias amplified
+by $1/w_f\approx1.15$, plus a gear-effect error on off-center strikes
+that the model cannot see (\cref{sec:gear}). This is not a defect of any
+particular product but a structural property of the modality.
+\end{keypoint}
+
+\subsection{Known limitations}
+
+Independent benchmarking consistently finds club parameters far less
+accurate than ball parameters for radar (and for camera systems without
+face markers): the Leach et al.\ criterion study is the key
+reference~\cite{leach2017}. Irons are harder than drivers (shaft and hosel
+returns, turf strike clutter, lower speeds); TrackMan's advertised
+``$>$90\% club-data pickup rate'' with OERT is itself an acknowledgment
+that pickup is not universal~\cite{trackmanoert}. Alignment error
+translates directly into correlated path/face bias on all units.
+
+\section{Optically enhanced radar: OERT and Fusion Tracking}
+\label{sec:oert}
+
+TrackMan~4 fuses its dual radar (X-band long-range ball subsystem +
+24\,GHz high-resolution club/impact subsystem, receivers sampled at
+40\,ksps) with a built-in camera synchronized in time and space: the
+camera contributes exact pre-impact ball position, markerless
+\emph{impact location} on the face, and ``4D silhouette'' clubhead
+tracking between radar epochs~\cite{trackmanoert,fccTman4}. The
+indoor-only TrackMan~iO packs a 24\,GHz radar with dual cameras --- one at
+up to 4,600\,fps for club and ball, one for alignment --- under 810--850\,nm
+IR illumination~\cite{trackmanspecs}. FlightScope's patented equivalent is
+Fusion Tracking (US\,10,338,209~\cite{us10338209}): the radar's predicted
+track steers image search windows, the camera's precise angular fixes
+correct the radar's, and inter-sensor offsets are removed by error
+minimization. Rapsodo's MLM2PRO pairs radar with 240\,fps cameras that
+read the printed dot pattern on RPT/RCT balls for measured spin rate and
+axis~\cite{mygolfspymlm2pro}; Full Swing's KIT feeds a 4K camera into an
+ML pipeline alongside its CW+FMCW radar~\cite{fullswingkit}.
+
+\begin{keypoint}
+Every major radar vendor has independently concluded that pure Doppler is
+insufficient at short range --- for spin axis, impact location, and
+club-face data --- and has added optical sensing or instrumented balls.
+This is the strongest architectural signal in the market for OpenFlight's
+roadmap.
+\end{keypoint}

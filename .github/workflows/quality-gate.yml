@@ -1,0 +1,30 @@
+name: quality-gate
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  quality-gate:
+    name: quality-gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Repo hygiene
+        run: |
+          set -euo pipefail
+          test -f README.md
+          echo "README present"
+          if grep -rn --include='*.md' -E '^(<{7}|>{7}|={7})( |$)' . ; then
+            echo "Merge conflict markers found" >&2
+            exit 1
+          fi
+          echo "No merge-conflict markers"
+          # Every tracked markdown file must be non-empty
+          empty=$(find . -name '*.md' -not -path './.git/*' -empty | wc -l)
+          if [ "$empty" -ne 0 ]; then
+            find . -name '*.md' -not -path './.git/*' -empty >&2
+            echo "Empty markdown files found" >&2
+            exit 1
+          fi
+          echo "No empty markdown files"

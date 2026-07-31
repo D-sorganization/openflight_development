@@ -1,0 +1,201 @@
+\chapter{Detailed Implementation Guidance for OpenFlight}
+\label{app:impl}
+
+This appendix turns the review into engineering guidance at the level of
+signal-processing parameters, algorithms, and procedures, citing the
+governing sources throughout. Coordinate conventions follow
+\cref{ch:params}.
+
+\section{Radar signal chain (OPS243-A)}
+\label{app:radardsp}
+
+\subsection{Doppler scaling and resolution budget}
+
+At $f_c = 24.125$\,GHz, \cref{eq:doppler} gives 71.7\,Hz per mph. With
+OpenFlight's 30\,kHz I/Q sample rate, the unambiguous span is
+$\pm15$\,kHz $\approx \pm209$\,mph --- adequate for ball speeds to
+$\sim$200\,mph. Velocity resolution is set by observation time:
+a 128-sample window ($4.27$\,ms) gives $\Delta f = 234$\,Hz
+$\approx3.3$\,mph per raw bin; zero-padding to 4096 (the current
+pipeline) interpolates the peak but does not add information. For
+\emph{spin} work the window, not the padding, must grow: resolving
+sidebands at $f_{\mathrm{spin}} = S/60$ (e.g.\ 50\,Hz at 3,000\,rpm)
+requires windows of $\gtrsim40$\,ms, during which a 150\,mph ball
+decelerates and the central line \emph{chirps} --- so the practical
+estimator de-chirps first (track the central line per
+US8845442's spectral-trace step~\cite{us8845442}, resample the phase to
+remove it), then measures the residual modulation.
+
+\subsection{Spin-rate comb estimation}
+
+The patent-documented chain (\cref{sec:radarspin}) maps to this concrete
+pipeline~\cite{us8845442,trackmanspinpatentblog}:
+\begin{enumerate}\itemsep2pt
+\item STFT with 50--75\% overlap over the post-impact 50--250\,ms;
+      track the ball ridge (max-SNR bin per frame with continuity
+      constraint).
+\item De-chirp: mix each frame down by the tracked ridge frequency so
+      the ball line sits at DC.
+\item Estimate the sideband comb spacing on the de-chirped spectrum via
+      cepstrum or harmonic product spectrum --- both are robust to
+      missing harmonics; the patent's \emph{qualification} step
+      (verify equal spacing across $\ge$3 consecutive frames, and
+      consistency of the harmonic-number assignment) is what separates
+      real spin from clutter~\cite{us8845442}.
+\item Report spin only when the qualified comb persists; otherwise fall
+      back to a flagged estimate from club priors
+      (\cref{app:priors}) --- the Garmin R10's documented
+      behavior~\cite{garminr10accuracy}.
+\end{enumerate}
+Expected detection physics: sideband amplitude scales with
+ball-surface asymmetry~\cite{us8845442}; range balls and clean urethane
+balls read weakly (the reason for Titleist RCT metal-tagged
+balls~\cite{mygolfspymlm2pro} and FlightScope's metallic-dot
+stickers~\cite{mevoteardown}). Logging which ball type produced each
+detection will quantify this for OpenFlight's own statistics.
+
+\emph{Patent posture:} this method is claimed by
+US8845442 to $\sim$2029 (US10393870 to Dec.\ 2026)~\cite{us8845442};
+the FlightScope phase-demodulation alternative (US9868044, dielectric
+lens~\cite{us9868044}) is claimed to $\sim$2034. See \cref{sec:fto}.
+
+\subsection{Club-speed extraction}
+
+The pre-impact spectrum contains a velocity \emph{smear} from heel
+(slow) to toe (fast), plus shaft returns below. TrackMan resolves this
+by reconstructing the head silhouette and reporting the geometric
+center~\cite{trackmanclubspeed}; a single-radar approximation that
+tracks a stable reference is: gate the last 30--50\,ms before the
+trigger timestamp, form the velocity histogram of CFAR-passing bins,
+discard the bottom decile (shaft/hosel) and top decile (toe glint), and
+report a fixed percentile (median of the remainder). Validate against
+the loft-dependent smash ceiling of \cref{sec:smash}
+(\cite{tutelmansmash}); reject or flag shots exceeding it, which
+independent testing shows is the signature of toe-lock
+errors~\cite{leach2017}.
+
+\section{Angle measurement (K-LD7) and the EKF}
+\label{app:ekf}
+
+\subsection{Interferometric angles}
+
+The K-LD7's two receive patches implement \cref{eq:interferometry} with
+a $\lambda/2$-class baseline; per-bin phase comparison of the two ADC
+channels after the range-Doppler FFT yields one angle per detection ---
+the same phase-monopulse principle as
+US10850179~\cite{us10850179} and the R10's three-receiver
+array~\cite{garminr10data}. Two practical constraints from the
+commercial art: (i) angle error grows as SNR falls, so weight each
+detection by measured SNR; (ii) mechanical alignment dominates the
+error budget --- a $1\degs$ mount error is a $1\degs$ bias on every
+launch direction, amplified $\sim$1.15$\times$ into face angle
+(\cref{eq:faceinversion}).
+
+\subsection{Recommended filter}
+
+Implement the \cref{sec:ekf} smoother concretely as:
+state $\vect{x} = (\vect{p}, \vect{v})$ (add spin states later);
+process model \cref{eq:eom} with Smits--Smith
+coefficients~\cite{smitssmith}; measurements: OPS243-A radial speed
+($\dot r$, high rate, low noise), K-LD7 angle+range detections (lower
+rate, SNR-weighted covariance). Run a forward EKF then an RTS
+(Rauch--Tung--Striebel) backward smoother over the 50--150\,ms burst,
+and evaluate the smoothed state at the sound-trigger timestamp minus
+the acoustic delay --- this back-extrapolation is how commercial radars
+report launch conditions robustly despite early-flight
+clutter~\cite{us8845442,us10338209}. The innovation-gating step of the
+EKF doubles as the outlier rejector for multipath and club returns.
+
+\subsection{Alignment calibration procedure}
+
+Adopt the commercial patterns: (i) Uneekor-style floor chart --- a
+printed target-line chart at known positions establishes the
+target-line azimuth for both K-LD7s~\cite{uneekorcalib}; (ii)
+FlightScope-style known-trajectory check --- roll or swing balls along
+a surveyed line and verify reported directions
+(US10338209 uses a Doppler simulator for the same
+purpose~\cite{us10338209}); (iii) record the mount pose in the session
+log so data from different setups is never silently mixed.
+
+\section{Derived club data, with priors}
+\label{app:priors}
+
+Implement the D-plane module once, use it both ways
+(\cref{sec:dplane,sec:faceangle}):
+\begin{itemize}\itemsep2pt
+\item \textbf{Forward} (simulation/validation): Tutelman's calibrated
+closed form, \cref{eq:obliqueness,eq:tutelmanlaunch}, plus spin from
+\cref{eq:spinrate}~\cite{tutelman3d}.
+\item \textbf{Inverse} (reporting): face angle from
+\cref{eq:faceinversion} with $w_f$ interpolated in dynamic loft between
+0.87 (driver) and 0.75 (wedge)~\cite{trackmanballflightlaws,tutelman3d};
+dynamic loft analogously from launch angle and attack angle. Tag both
+as \emph{derived} per \cref{tab:hierarchy}.
+\item \textbf{Priors table} per club type (driver\ldots{}wedge): static
+loft, typical dynamic-loft delta, spin-loft range, smash ceiling
+(\cref{sec:smash}), PGA/LPGA reference deliveries~\cite{trackman40params}.
+Used for: spin fallback estimates, outlier gating, and the smash sanity
+check.
+\item \textbf{Gear-effect bound}: when impact location is unknown,
+attach an uncertainty of up to $\pm6\degs$ of spin-axis tilt per
+0.14\,in of possible driver miss~\cite{perfectgolfswing,tutelmangear} to
+any derived face-to-path interpretation --- and surface it in the UI
+rather than hiding it.
+\end{itemize}
+
+\section{Optical module (Phase 2) design parameters}
+\label{app:optical}
+
+The expired Wintriss patents~\cite{us7292711} plus PiTrac's published
+design~\cite{pitrac} fix the working parameters:
+\begin{itemize}\itemsep2pt
+\item \textbf{Sensor}: Raspberry Pi Global Shutter camera (IMX296,
+$1456\times1088$); global shutter is non-negotiable (rolling shutter
+skews a 150\,mph ball by several pixels per row-time).
+\item \textbf{Strobed multi-exposure}: $N=3$--5 IR pulses
+(850\,nm, tens of \si{\micro\second} each) inside one long exposure
+freeze $N$ ball images per frame; at 150\,mph the ball moves 6.7\,cm/ms,
+so pulse spacing of $\sim$300--500\,\si{\micro\second} spaces images
+2--3\,cm apart in a 30\,cm capture volume --- matching the commercial
+capture geometry~\cite{foresightgcquad,pitrac}.
+\item \textbf{Trigger}: reuse the SEN-14262 sound trigger; its
+$\sim$10\,\si{\micro\second} latency is far inside the strobe-timing
+budget, solving the triggering problem the Wintriss patent addressed
+with a microphone+radar pair~\cite{us7292711}.
+\item \textbf{Ball detection}: Hough circles on the strobed frame
+(PiTrac-proven~\cite{pitrac}); depth from the known 42.67\,mm diameter
+(the Wintriss mono-camera range cue~\cite{us7292711}) or from a second
+camera via \cref{eq:depth}.
+\item \textbf{Spin}: register the dimple texture between successive
+ball images over $SO(3)$ (\cref{eq:rotangle}); Gabor-filter
+pre-enhancement of dimples is documented in
+US12401909~\cite{us12401909}; with $\Delta t \approx 400$\,\si{\micro
+\second}, 3,000\,rpm is only $7.2\degs$ of rotation --- comfortably
+below the aliasing limit, and small enough that a local search around
+the D-plane-predicted axis converges quickly
+(\cref{sec:dimplespin}). This is the public-domain
+(post-2025) Wintriss/Foresight method~\cite{us7292711,foresightspherical}.
+\item \textbf{Impact location / measured face angle} (later): either
+face fiducials per the expired Acushnet recipes
+(US5501463/US6758759: dots + stereo pose)~\cite{us5501463,us6758759},
+or an overhead second camera per the Uneekor
+geometry~\cite{uneekoreyexo}.
+\end{itemize}
+
+\section{Flight model and validation protocol}
+
+Ship Smits--Smith (\cref{eq:smits}) with spin
+decay~\cite{smitssmith}, version the coefficients, and calibrate
+against measured trajectories using the US6186002 fitting
+approach~\cite{us6186002} --- outdoor sessions with the MLM2PRO (or
+simple carry ground-truth) provide the data. Validation against the
+MLM2PRO should follow the Leach protocol
+structure~\cite{leach2017}: per-club shot blocks, Bland--Altman limits
+of agreement per parameter, ball data compared directly, spin compared
+only on RPT/RCT balls (where the MLM2PRO's spin is
+camera-measured~\cite{mygolfspymlm2pro}), and club speed compared with
+an explicit reference-point caveat (\cref{sec:radarclub}). Log raw
+I/Q and (later) raw frames for every shot so algorithm changes can be
+replayed against history --- the practice that made this review's
+accuracy analysis possible for the commercial units is exactly what an
+open project can do better.

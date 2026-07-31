@@ -22,6 +22,15 @@
 \usepackage[hidelinks,pdfusetitle]{hyperref}
 \usepackage[capitalise,noabbrev]{cleveref}
 
+% Bibliography: structured BibTeX database (references.bib), biber backend.
+% Entries are grouped in the printed bibliography by their `keywords`
+% field -- see CONVENTIONS.md before adding references.
+\usepackage[backend=biber,style=numeric,sorting=nyt,giveninits=true,
+            maxbibnames=6,minbibnames=6,isbn=false,eprint=false]{biblatex}
+\addbibresource{references.bib}
+% Print the URL note field compactly for online/manual sources.
+\setlength{\bibitemsep}{0.5ex}
+
 % Color scheme
 \definecolor{ofblue}{RGB}{20,60,110}
 \definecolor{ofgray}{RGB}{90,95,100}

@@ -27,3 +27,10 @@ tech-review/*.out
 tech-review/*.toc
 tech-review/*.lof
 tech-review/*.lot
+tech-review/*.bbl
+tech-review/*.bcf
+tech-review/*.blg
+tech-review/*.run.xml
+tech-review/*.fdb_latexmk
+tech-review/*.fls
+tech-review/*.synctex.gz

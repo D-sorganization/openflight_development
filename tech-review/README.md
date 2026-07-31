@@ -4,8 +4,14 @@ A comprehensive LaTeX technology review of how commercial golf launch monitors
 work — radar physics, camera photogrammetry, patent landscape, and the
 club/ball parameter calculations — written to guide OpenFlight development.
 
-- **[main.pdf](main.pdf)** — the compiled report (~59 pages)
-- `main.tex` + `sections/` — LaTeX source (10 chapters + 4 appendices + bibliography)
+> **Contributing?** Read **[CONVENTIONS.md](CONVENTIONS.md)** first — it covers file
+> layout, labels, citation keys, prose style, and the build. This document is
+> designed to grow toward a textbook-scale reference edited by many hands.
+
+- **[main.pdf](main.pdf)** — the compiled report (~60 pages)
+- `main.tex` + `sections/` — LaTeX source (10 chapters + 4 appendices), one file per chapter
+- `references.bib` — the bibliography database (76 entries, grouped by source category)
+- `build.ps1` — local build; CI builds every PR via `.github/workflows/tech-review.yml`
 - `research/` — the four raw research dossiers the report was synthesized from
   (radar systems, camera systems, patents, physics/algorithms), with source
   URLs for every claim

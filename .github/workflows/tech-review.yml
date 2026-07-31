@@ -1,0 +1,65 @@
+name: tech-review
+
+# Builds the LaTeX technology review so that broken sources, missing
+# bibliography keys, and dangling cross-references fail a pull request
+# instead of merging silently. Contributors who cannot run LaTeX locally
+# can treat this job as the authoritative build check.
+
+on:
+  push:
+    paths:
+      - 'tech-review/**'
+      - '.github/workflows/tech-review.yml'
+  pull_request:
+    paths:
+      - 'tech-review/**'
+      - '.github/workflows/tech-review.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: build-pdf
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compile with latexmk (runs biber automatically)
+        uses: xu-cheng/latex-action@v3
+        with:
+          working_directory: tech-review
+          root_file: main.tex
+          latexmk_shell_escape: false
+          args: -pdf -file-line-error -halt-on-error -interaction=nonstopmode
+
+      - name: Fail on undefined citations or cross-references
+        run: |
+          set -euo pipefail
+          log=tech-review/main.log
+          if grep -nE "Citation .* undefined|Reference .* undefined" "$log"; then
+            echo "::error::Undefined citation or cross-reference. A \\cite key is missing from references.bib, or a \\cref target does not exist. See CONVENTIONS.md sections 3 and 4." >&2
+            exit 1
+          fi
+          echo "No undefined citations or references."
+
+      - name: Verify every bibliography entry is printed
+        run: |
+          set -euo pipefail
+          cd tech-review
+          bib=$(grep -c '^@' references.bib)
+          bbl=$(grep -c '\\entry{' main.bbl)
+          echo "references.bib entries: $bib"
+          echo "printed entries:        $bbl"
+          if [ "$bib" -ne "$bbl" ]; then
+            echo "::error::$((bib - bbl)) bibliography entries are not printed. Every entry needs exactly one valid 'keywords' value (literature|patent|vendor|hardware|community) — see CONVENTIONS.md section 4." >&2
+            exit 1
+          fi
+
+      - name: Report page count
+        run: grep -o 'Output written on main.pdf ([0-9]* pages' tech-review/main.log || true
+
+      - name: Upload built PDF
+        uses: actions/upload-artifact@v4
+        with:
+          name: tech-review-pdf
+          path: tech-review/main.pdf
+          if-no-files-found: error

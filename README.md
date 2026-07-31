@@ -36,7 +36,7 @@ Tasks are tracked as **GitHub Issues on this repo**, derived from the project re
 | Item | Status |
 |------|--------|
 | OPS243 Doppler radar ×2 | **Have** (verify neither is the WiFi `-W` variant — see parts list) |
-| TI IWR6843 angle radar | **On order** (confirm it is the **IWR6843LEVM** variant — see parts list) |
+| TI IWR6843LEVM angle radar | **On order** — ✅ variant confirmed 2026-07-31 (Digi-Key 296-IWR6843LEVM-ND) |
 | SparkFun SEN-14262 sound detector | **Have** |
 | Rapsodo MLM2 Pro | **Have** (reference instrument for validation) |
 | Raspberry Pi 5 + display + accessories | **Need** — see [hardware/parts-list.md](hardware/parts-list.md) |

@@ -73,6 +73,67 @@ systems that measure face pose but not impact location are systematically
 biased on off-center hits.
 \end{enumerate}
 
+\subsection{Club path is reference-point dependent too --- by about
+3\degs{} on a driver}
+\label{sec:pathreference}
+
+The reference-point issue is usually discussed only for club speed, but it
+applies with equal force to \emph{direction}, and the magnitude is large
+enough to matter.
+
+For any two points on the rigid clubhead,
+\begin{equation}
+\label{eq:pointvel}
+\vect{v}_P = \vect{v}_O + \boldsymbol{\omega}\times\vect{r},
+\qquad \vect{r} = \vect{p}_P - \vect{p}_O,
+\end{equation}
+so there is a \emph{velocity field} across the head rather than a single
+path. A reported path is that field sampled at a chosen point. The two
+candidate points are far apart on a driver: the center of gravity sits
+roughly 25--50\,mm behind the face, and the geometric center that radar
+tracks is typically within 6\,mm of the CG~\cite{trackmanclubspeed}.
+
+The industry has split along the sensing modality. Radar systems report
+path at the geometric center, because that is the point the silhouette
+reconstruction can locate from behind. Optical systems with face fiducials
+report it at the \emph{face center}, because that is where the markers
+are. TrackMan quantifies the resulting gap directly: for a driver, the
+CG path and the face-center path differ by \textbf{approximately
+3\degs}, with the face-center path being the more
+out-to-in of the two, and the discrepancy shrinks for shorter clubs as the
+CG-to-face distance falls~\cite{trackmanclubdata}.
+
+Two rotations drive it, both pushing the same way horizontally: the swing
+arc curves leftward through impact, so a point displaced forward along the
+arc has its velocity rotated further around it; and face closure about the
+shaft axis swings a point ahead of the rotation center leftward. The same
+geometry tilts the face-center velocity slightly \emph{upward} relative to
+the CG --- a shallower attack angle --- because the face center sits ahead
+of the CG on an arc that is turning upward through the bottom.
+
+\begin{keypoint}
+Because the offset is $\boldsymbol{\omega}\times\vect{r}$, it is not a
+fixed constant: it scales with closure rate and arc tightness. Two players
+with identical reported path but different release rates do not have the
+same face-center path. And note that TrackMan's reported face-to-path is
+already a \emph{hybrid} --- face orientation evaluated at the contact
+point minus velocity direction evaluated at the geometric center --- so it
+is not a physically clean angle under either convention.
+\end{keypoint}
+
+\begin{implication}
+This is the sharpest available argument for the twist formulation of
+\cref{app:screw}. Estimating $\xi = (\boldsymbol{\omega}, \vect{v}_O)$
+makes path at any point a projection of one fitted object, so both
+conventions --- and the rotation rate that separates them --- fall out of
+the same estimate. OpenFlight should report path at a
+\emph{declared} reference point, state which one, and expose
+$\lVert\boldsymbol{\omega}\rVert$ alongside it so the user can see how
+much the choice is worth on that swing. Reporting a bare path number
+without its reference point is reporting a quantity that is
+$\sim$3\degs{} ambiguous on a driver.
+\end{implication}
+
 \section{Ball-launch parameters}
 
 \begin{table}[htbp]

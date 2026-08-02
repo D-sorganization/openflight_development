@@ -105,6 +105,10 @@ the acoustic delay --- this back-extrapolation is how commercial radars
 report launch conditions robustly despite early-flight
 clutter~\cite{us8845442,us10338209}. The innovation-gating step of the
 EKF doubles as the outlier rejector for multipath and club returns.
+The same filtering architecture extends from point tracking (the ball)
+to rigid-body tracking (the club) via the screw-theoretic formulation
+of \cref{app:screw}, which is the recommended estimation layer for the
+IWR6843 integration.
 
 \subsection{Alignment calibration procedure}
 

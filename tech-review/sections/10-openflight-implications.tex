@@ -90,6 +90,14 @@ radar-steered image search windows (FlightScope US10338209).
 K-LD7 angles, and camera fixes, with per-sensor covariances; flight
 model per \cref{ch:flight} with versioned coefficients; validation
 protocol against the MLM2PRO per \cref{ch:accuracy}.
+\item \textbf{Phase 4 (measured club delivery)}: IWR6843 with custom
+chirp firmware feeding the screw-theoretic rigid-body estimator of
+\cref{app:screw} --- per-detection Doppler rows solved for the club's
+twist, smoothed on $SE(3)$, and projected into club speed at a declared
+reference point, measured path and attack angle, closure rate, and an
+ISA-defined swing plane. This moves path and attack angle from
+\emph{derived} to \emph{measured} in \cref{tab:hierarchy}; face angle
+and impact location remain with the optical module.
 \end{enumerate}
 
 \section{Reporting honesty as a feature}

@@ -1,0 +1,181 @@
+\chapter{Clubhead Kinematics from Radar Velocities: A Screw-Theoretic How-To}
+\label{app:screw}
+
+This appendix develops, at implementation depth, the estimation layer that turns per-detection radar velocities into clubhead motion: what the current OpenFlight hardware can and cannot recover, why the twist (screw) representation of rigid-body motion is the natural formalism for the problem, and a step-by-step recipe for building the estimator on the IWR6843-class sensor described in \cref{app:hardware}.
+It extends the EKF architecture of \cref{app:ekf} from point tracking (the ball) to rigid-body tracking (the club).
+
+\section{Context: what the commercial systems actually recover}
+\label{sec:screw-context}
+
+TrackMan's club-data pipeline, as described in its documentation and patent family, tracks the clubhead ``from about knee height to impact,'' resolves the head's radar return into velocity components across multiple receivers, and reports the trajectory of the head's \emph{geometric center}~\cite{trackmanclubspeed,us10850179,trackmanoert}.
+The physical basis is that a rotating, translating clubhead is not a point target: the toe moves up to $\sim$7\mph{} faster than the heel, so the club's return occupies a spread of Doppler bins, and multi-receiver phase interferometry (\cref{sec:interferometry}) locates each velocity component in angle.
+What is fitted to those observations is a \emph{rigid-body motion model}, not an image; ``3D silhouette'' is marketing shorthand for that model fit.
+
+\paragraph{Is screw theory used by the industry?}
+There is no public evidence that TrackMan (or any launch-monitor vendor) formulates this fit in screw/twist coordinates: the patents describe point-trajectory tracking, Doppler-component decomposition, and silhouette correlation, without reference to the screw formalism~\cite{us8845442,us10850179}.
+The instantaneous screw axis (ISA) \emph{is}, however, an established tool in golf biomechanics: Vena et al.\ applied ISA theory to optical motion capture of the swing in a two-part \emph{Sports Engineering} study, verifying that segment motion during the downswing is dominantly rotational about a well-defined moving axis (at least 71\% of marker velocity attributable to ISA rotation) and using ISA smoothness to characterize the kinematic sequence~\cite{vena2010a,vena2010b}.
+The contribution proposed here --- estimating the club's twist \emph{directly from Doppler detections} rather than from marker positions --- is, to our knowledge, not published in the golf literature, although the underlying mathematics is standard in robotics~\cite{murrayliss} and radar micro-Doppler analysis~\cite{chenmicrodoppler}.
+For OpenFlight this is an opportunity: the formalism is public-domain mathematics, distinct from the specific claimed pipelines in \cref{app:patents}.
+
+\section{Screw theory in the minimum required dose}
+\label{sec:screw-primer}
+
+A rigid body's instantaneous motion is fully described by a \textbf{twist}
+\begin{equation}
+\label{eq:screw-twist}
+\xi = (\vect{\omega},\, \vect{v}_O) \in \mathfrak{se}(3),
+\end{equation}
+where $\vect{\omega}$ is the angular velocity and $\vect{v}_O$ is the linear velocity of a chosen body reference point $O$.
+The velocity of any body-fixed point at position $\vect{r}$ relative to $O$ is then
+\begin{equation}
+\label{eq:screw-pointvel}
+\vect{v}(\vect{r}) = \vect{v}_O + \vect{\omega} \times \vect{r}.
+\end{equation}
+Chasles' theorem states that every such motion is instantaneously a rotation about, plus a translation along, a unique line in space: the \textbf{instantaneous screw axis} (ISA).
+Its direction is $\hat{\vect{\omega}}$; a point on it is
+\begin{equation}
+\label{eq:screw-isa}
+\vect{r}_{\mathrm{ISA}} = \frac{\vect{\omega} \times \vect{v}_O}{\lVert\vect{\omega}\rVert^{2}},
+\qquad
+h = \frac{\vect{\omega} \cdot \vect{v}_O}{\lVert\vect{\omega}\rVert^{2}},
+\end{equation}
+where the \textbf{pitch} $h$ is the translation per radian along the axis.
+For a downswing near impact the club's motion is close to a pure rotation about a hub near the hands: the ISA passes near the grip and the pitch is small.
+That geometric fact is both a physical insight (the ISA trajectory \emph{is} a rigorous definition of swing plane) and, later, a regularization prior.
+Standard references: Murray, Li \& Sastry for the mathematics~\cite{murrayliss}; Vena et al.\ for golf-specific ISA practice and its error behavior~\cite{vena2010a}.
+
+\section{The measurement model: Doppler is linear in the twist}
+\label{sec:screw-measurement}
+
+A radar detection assigns to some scattering center at known position $\vect{p}_i$ (from range and monopulse angle) a radial velocity $\dot d_i$ along the unit line of sight $\uvec{u}_i = \vect{p}_i / \lVert\vect{p}_i\rVert$.
+Substituting \cref{eq:screw-pointvel} with $\vect{r}_i = \vect{p}_i - \vect{p}_O$:
+\begin{equation}
+\label{eq:screw-doppler}
+\dot d_i
+= \uvec{u}_i \cdot \vect{v}(\vect{r}_i)
+= \underbrace{\uvec{u}_i}_{1\times3} \cdot\, \vect{v}_O
+\;+\; \underbrace{(\vect{r}_i \times \uvec{u}_i)}_{1\times3} \cdot\, \vect{\omega}.
+\end{equation}
+This is the reciprocal product of the sight line (as a Pl\"ucker line) with the twist, and it is \textbf{exactly linear} in the six unknowns $(\vect{v}_O, \vect{\omega})$.
+Each detection contributes one row of a linear system
+\begin{equation}
+\label{eq:screw-ls}
+\vect{z} = A\,\xi + \vect{\epsilon},
+\qquad
+A_i = \bigl[\; \uvec{u}_i^{\mathsf T} \;\big|\; (\vect{r}_i \times \uvec{u}_i)^{\mathsf T} \;\bigr],
+\end{equation}
+so the per-frame twist estimate is weighted least squares --- no iteration, no linearization error, and a covariance $(A^{\mathsf T} W A)^{-1}\sigma^2$ for free.
+This is the property that makes the screw formulation not merely elegant but \emph{operationally} correct for radar: the sensor's native observable is already a linear functional of the twist.
+(Camera systems enter the same framework from the other side: a fiducial-tracked face gives an $SE(3)$ pose per frame, and the matrix logarithm of the frame-to-frame relative pose is a finite twist~\cite{murrayliss}; one downstream representation serves both modalities.)
+
+\section{What the current hardware can observe}
+\label{sec:screw-ceiling}
+
+Apply \cref{eq:screw-ls} to each OpenFlight sensor to see the ceiling precisely.
+
+\subsection{OPS243-A: one row, no position}
+The OPS243-A has a single receive channel: it measures $\dot d_i$ but neither range nor angle, so $\vect{p}_i$ is unknown and \cref{eq:screw-ls} cannot be assembled.
+What survives is the \emph{marginal distribution} of $\dot d$ over the head: at 30\,ksps with 128-sample segments the raw Doppler bin is $\approx$3.3\mph{} (\cref{app:hardware}), so the full toe--heel spread of a driver spans only $\sim$2 raw bins.
+Software can and should still extract (\cref{app:radardsp}): the spread's midpoint or a fixed percentile as a stable club-speed reference (the peak is toe glint); the spread \emph{width} as a crude proxy for $\lVert\vect{\omega}\rVert$ projected on the line of sight; and head/shaft separation by gating the slow tail.
+That is the honest ceiling of the current stack: a one-dimensional shadow of the twist, useful for de-biasing club speed, incapable of yielding path or attack angle.
+
+\subsection{K-LD7: the right equation, the wrong operating envelope}
+The K-LD7's dual receive patches provide per-bin monopulse angle --- rows of \cref{eq:screw-ls} in principle --- but its fastest setting has a 100\,km/h ($\approx$62\mph) unambiguous-velocity ceiling and $\sim$29\,ms frames (\cref{app:hardware}), so a driver head aliases and traverses more than a meter between frames.
+It remains a ball-burst angle sensor, not a club tracker.
+
+\subsection{IWR6843: all three ingredients in one package}
+The IWR6843 supplies everything \cref{eq:screw-ls} needs, given custom chirp firmware (\cref{app:hardware}): range at 3.75\,cm resolution (separates head from shaft and arms), per-chirp Doppler with both span and resolution set by the chirp plan, and per-detection monopulse angle from 12 virtual antennas.
+Representative chirp budget for the club problem:
+\begin{center}\small
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Choice} & \textbf{Value} & \textbf{Consequence} & \textbf{Governing relation} \\
+\midrule
+Chirp repetition $T_c$ & 25\,\si{\micro\second} & $v_{\max} = \lambda/4T_c \approx 50$\,m/s (112\mph) & unambiguous velocity \\
+Chirps per frame $N$ & 128 & $\Delta v = \lambda/2NT_c \approx 0.8$\,m/s & velocity resolution \\
+Frame time & 3.2\,ms & $\sim$300\,Hz frame rate & swing-resolved motion \\
+Bandwidth $B$ & 4\,GHz & $\Delta R = c/2B = 3.75$\,cm & 3--4 cells across the head \\
+\bottomrule
+\end{tabular}
+\end{center}
+At $\lambda = 5$\,mm the toe--heel spread ($\sim$3\,m/s) covers $\sim$4 velocity cells --- twice the OPS243-A's resolving power, with each cell additionally localized in range and angle.
+The out-of-box SDK point cloud at 10--20\,Hz is useless here; the custom chirp configuration plus on-chip range-Doppler processing is the enabling (and largest) engineering task, as flagged in \cref{app:hardware}.
+
+\section{Estimation recipe, step by step}
+\label{sec:screw-recipe}
+
+The following is the full pipeline, in execution order, for one swing.
+Notation: frames indexed $k$, detections within a frame indexed $i$.
+
+\subsection*{Step 1 --- Detect and localize}
+Run 2D CFAR on each frame's range-Doppler map (OS-CFAR preferred over cell-averaging: club and ball are exactly the closely-spaced-targets case it is designed for, \cref{app:hardware}).
+For each detection, compute monopulse azimuth/elevation from the virtual-array phase and form $\vect{p}_i = (R_i, \theta_i, \phi_i)$ in Cartesian sensor coordinates, with a per-detection covariance driven by SNR (angle variance $\propto 1/\mathrm{SNR}$; range variance from the window function).
+
+\subsection*{Step 2 --- Segment the club}
+Gate detections to the club by a joint predicate: range inside the swing corridor, radial speed in the club band (above waggle, below ball speeds), and --- once tracking has started --- Mahalanobis distance to the propagated track.
+Reject the shaft by its distinct signature: shaft returns sit at lower speed and nearer range, forming an elongated cluster whose major axis points at the head cluster.
+Body and arm clutter falls out on speed alone.
+
+\subsection*{Step 3 --- Per-frame twist solve}
+Choose the body reference point $O_k$ as the SNR-weighted centroid of the head cluster (this choice only re-parameterizes $\vect{v}_O$; the twist itself is frame-invariant).
+Assemble \cref{eq:screw-ls} over the frame's $m_k$ detections and solve weighted least squares with a robust loss (Huber or Cauchy) on the residuals --- robustness is not optional, because \emph{glint migration} (specular points wandering across the curved metal head as aspect changes) violates the fixed-scatterer assumption at the few-centimeter level and manifests as heavy-tailed residuals.
+Record $\hat\xi_k$ and its covariance $\Sigma_k = (A^{\mathsf T} W A)^{-1}$.
+
+\subsection*{Step 4 --- Read the conditioning honestly}
+Compute the SVD of the weighted $A$.
+Expect, from a single vantage $\sim$2\,m away with detections spanning $\sim$10\,cm: one strong singular value (bulk radial velocity --- essentially club speed), one or two moderate ones (the transverse velocity component resolved by angle diversity, and the $\vect{\omega}$ combination that generates the Doppler spread), and the rest weak.
+\textbf{Do not invert the weak directions per frame.}
+Either truncate the SVD (solve only the well-conditioned subspace and carry the null-space explicitly) or defer those components entirely to the smoother of Step 5.
+A per-frame 6-DOF solve that ``works'' numerically will hallucinate the unobservable components from noise; this is the single most likely implementation failure mode.
+
+\subsection*{Step 5 --- Smooth the twist trajectory on $SE(3)$}
+The rank deficiency resolves \emph{across} frames: as the head sweeps through the beam over $\sim$30\,ms ($\sim$10 frames at 300\,Hz), the sight-line geometry rotates and different frames constrain different twist combinations.
+Estimate a smooth trajectory rather than independent snapshots:
+state $x_k = (T_k \in SE(3),\, \xi_k)$, i.e., pose and twist;
+process model $T_{k+1} = T_k \exp\!\bigl((\xi_k \Delta t)^{\wedge}\bigr)$ with a slowly varying twist (white-noise angular/linear acceleration, tuned to swing dynamics --- the head gains roughly 1\mph{} per millisecond late in the downswing);
+measurements = the raw rows of \cref{eq:screw-doppler} (preferable to feeding the Step-3 point estimates, since rows carry their true information content);
+run an extended/unscented filter with the standard Lie-group state handling~\cite{murrayliss}, then an RTS backward smoother, exactly as in \cref{app:ekf}.
+Add two physically motivated priors, weighted weakly enough to be overruled by data:
+\begin{enumerate}
+\item \textbf{Low pitch}: penalize $h^2 = (\vect{\omega}\cdot\vect{v}_O)^2/\lVert\vect{\omega}\rVert^4$ --- the downswing is close to a pure rotation~\cite{vena2010a}.
+\item \textbf{Hub proximity}: penalize distance of the ISA (\cref{eq:screw-isa}) from a broad prior region around the golfer's hands.
+\end{enumerate}
+
+\subsection*{Step 6 --- Evaluate at impact, then stop}
+Rigidity holds before impact and fails during it ($\sim$500\,\si{\micro\second} of gross deformation), so fit only up to the last pre-impact frame and evaluate the smoothed twist at the impact timestamp (from the sound trigger, minus the acoustic delay budget of \cref{app:hardware}).
+This mirrors the commercial convention: TrackMan defines club speed ``just prior to first contact''~\cite{trackmanclubspeed}.
+
+\subsection*{Step 7 --- Project out the parameters}
+All club-delivery parameters are now projections of one estimated object:
+\begin{center}\small
+\begin{tabular}{@{}p{3.6cm}p{9.6cm}@{}}
+\toprule
+\textbf{Parameter} & \textbf{Projection of the impact-time twist} \\
+\midrule
+Club speed & $\lVert \vect{v}_O + \vect{\omega}\times\vect{r}_{gc} \rVert$ at a \emph{declared} reference point $\vect{r}_{gc}$ (cluster centroid, or a per-club calibrated offset) \\
+Club path & horizontal direction angle of that velocity vector vs.\ the target line \\
+Attack angle & vertical direction angle of the same vector \\
+Closure rate & component of $\vect{\omega}$ about the estimated shaft axis, in \si{\degree\per\second} --- the GCQuad-exclusive parameter (\cref{sec:camclub}), free here \\
+Swing plane / direction & orientation of the ISA (\cref{eq:screw-isa}) and of the plane its trajectory sweeps \\
+Low point & extrapolate the reference-point arc to its velocity-vertical zero \\
+Gear-effect recoil & (post-impact, optional) the discontinuity in $\vect{\omega}$ across impact estimates the head's angular recoil, cross-checkable against \cref{eq:gear} \\
+\bottomrule
+\end{tabular}
+\end{center}
+Report each with the covariance propagated from the smoother, and tag provenance per \cref{tab:hierarchy}: with this pipeline, path and attack angle move from \emph{derived} to \emph{measured}, while face angle and impact location remain optics problems (\cref{sec:faceangle}).
+
+\section{Validation plan}
+\label{sec:screw-validation}
+
+Validate in order of increasing realism, reusing the standards of \cref{ch:accuracy}:
+\begin{enumerate}
+\item \textbf{Synthetic}: simulate scatterers on a CAD clubhead following a recorded swing trajectory, generate detections with realistic SNR and glint migration, and verify the recovered twist against truth --- this exercises Steps 3--5 without hardware and quantifies the observability claims of Step 4.
+\item \textbf{Pendulum rig}: a club swung as a physical pendulum has an analytically known, planar, fixed-axis twist (pitch exactly zero, ISA fixed); any bias in the pipeline shows up immediately.
+\item \textbf{Cross-device}: compare club speed, path, and attack angle against the MLM2PRO per the protocol of \cref{ch:accuracy}, with the reference-point caveat of \cref{sec:radarclub} stated up front; sanity-gate every shot against the loft-dependent smash ceiling (\cref{sec:smash}).
+\item \textbf{Internal consistency}: the measured path must satisfy the swing-geometry identity (path as a function of swing direction, swing plane, attack angle --- \cref{ch:impact}) within uncertainty; violations indicate reference-point drift or alignment error.
+\end{enumerate}
+
+\begin{implication}
+The twist formulation costs nothing extra to adopt --- the per-frame solve is a small weighted least squares --- and buys three things the point-tracking alternative cannot: a principled, declared club-speed reference point (ending the largest inter-device disagreement), closure rate and a rigorous swing plane as free by-products, and honest covariances on every club parameter.
+It should be specified as the estimation layer for the IWR6843 integration from day one, with the OPS243-A velocity-distribution analytics (\cref{app:radardsp}) as the degenerate 1D special case of the same model.
+\end{implication}

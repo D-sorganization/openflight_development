@@ -167,6 +167,23 @@ cd tech-review && latexmk -pdf main.tex
 pdflatex → biber → pdflatex → pdflatex; a single pass will show `[?]` citation
 marks and a stale table of contents.
 
+**Verify with the same flags CI uses, and check the exit code.** CI passes
+`-halt-on-error`. Without it, pdflatex recovers from a fatal error, continues,
+and still emits a PDF — so a log-grep for error strings can come back clean on a
+build that CI will reject. Check `$LASTEXITCODE` (or `$?`) rather than trusting
+a grep:
+
+```bash
+pdflatex -halt-on-error -file-line-error -interaction=nonstopmode main.tex
+```
+
+Two failure modes worth knowing. An **undefined colour or macro** only surfaces
+where it is *used*, which may be a chapter away from the definition you edited —
+rename theme colours across `preamble.tex` *and* every `sections/*.tex` in the
+same commit. And on Windows, an **open PDF viewer file-locks `main.pdf`**, which
+makes pdflatex fail with "I can't write on file" and leaves a stale PDF in
+place; build with `-jobname=verify` to check without touching the locked file.
+
 **In CI:** `.github/workflows/tech-review.yml` compiles the document on every
 push and pull request that touches `tech-review/`, fails on LaTeX errors and on
 undefined citations or references, and uploads the built PDF as a workflow

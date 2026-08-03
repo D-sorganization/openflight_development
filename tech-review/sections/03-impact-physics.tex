@@ -36,21 +36,21 @@ the ``new ball flight laws.''
 \centering
 \begin{tikzpicture}[scale=1.05,>=Stealth]
   % target line
-  \draw[ofgray,dashed,->] (0,0) -- (9.5,0) node[right] {\small target line};
+  \draw[accentgray,dashed,->] (0,0) -- (9.5,0) node[right] {\small target line};
   % club path vector
-  \draw[thick,ofgreen,->] (0,0) -- ({8*cos(-6)},{8*sin(-6)})
+  \draw[thick,accentgreen,->] (0,0) -- ({8*cos(-6)},{8*sin(-6)})
     node[below right] {\small club path $\uvec{p}$ ($-6\degs$)};
   % face normal
-  \draw[thick,ofblue,->] (0,0) -- ({8*cos(-2)},{8*sin(-2)})
+  \draw[thick,accentblue,->] (0,0) -- ({8*cos(-2)},{8*sin(-2)})
     node[above right] {\small face normal $\uvec{n}$ ($-2\degs$)};
   % launch direction
   \draw[very thick,red!70!black,->] (0,0) -- ({8.6*cos(-2.6)},{8.6*sin(-2.6)})
     node[right] {\small launch $\approx 0.76\varphi_f + 0.24\varphi_p$};
   % angle arcs
-  \draw[ofgray] (2.2,0) arc[start angle=0,end angle=-6,radius=2.2];
-  \node[ofgray] at (2.9,-0.32) {\footnotesize $\varphi_p$};
-  \draw[ofgray] (4.6,0) arc[start angle=0,end angle=-2,radius=4.6];
-  \node[ofgray] at (5.3,-0.09) {\footnotesize $\varphi_f$};
+  \draw[accentgray] (2.2,0) arc[start angle=0,end angle=-6,radius=2.2];
+  \node[accentgray] at (2.9,-0.32) {\footnotesize $\varphi_p$};
+  \draw[accentgray] (4.6,0) arc[start angle=0,end angle=-2,radius=4.6];
+  \node[accentgray] at (5.3,-0.09) {\footnotesize $\varphi_f$};
 \end{tikzpicture}
 \caption{Horizontal D-plane geometry (top view, right-handed golfer,
 out-to-in ``fade'' delivery). The ball launches close to the face

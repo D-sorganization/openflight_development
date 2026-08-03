@@ -1,4 +1,4 @@
-\chapter{Detailed Implementation Guidance for OpenFlight}
+\chapter{Detailed Implementation Guidance}
 \label{app:impl}
 
 This appendix turns the review into engineering guidance at the level of
@@ -12,7 +12,7 @@ governing sources throughout. Coordinate conventions follow
 \subsection{Doppler scaling and resolution budget}
 
 At $f_c = 24.125$\,GHz, \cref{eq:doppler} gives 71.7\,Hz per mph. With
-OpenFlight's 30\,kHz I/Q sample rate, the unambiguous span is
+a 30\,kHz I/Q sample rate, the unambiguous span is
 $\pm15$\,kHz $\approx \pm209$\,mph --- adequate for ball speeds to
 $\sim$200\,mph. Velocity resolution is set by observation time:
 a 128-sample window ($4.27$\,ms) gives $\Delta f = 234$\,Hz
@@ -52,7 +52,7 @@ ball-surface asymmetry~\cite{us8845442}; range balls and clean urethane
 balls read weakly (the reason for Titleist RCT metal-tagged
 balls~\cite{mygolfspymlm2pro} and FlightScope's metallic-dot
 stickers~\cite{mevoteardown}). Logging which ball type produced each
-detection will quantify this for OpenFlight's own statistics.
+detection will quantify this for a given deployment.
 
 \emph{Patent posture:} this method is claimed by
 US8845442 to $\sim$2029 (US10393870 to Dec.\ 2026)~\cite{us8845442};

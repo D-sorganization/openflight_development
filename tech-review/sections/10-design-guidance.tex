@@ -1,0 +1,146 @@
+\chapter{Design Guidance for Implementers}
+\label{ch:implications}
+
+This chapter distills the review into design guidance, organised by what a
+given sensing architecture can and cannot deliver. It is written for anyone
+building a launch monitor, and equally for anyone evaluating one: the same
+reasoning that tells an engineer which parameters are reachable tells a
+buyer which reported numbers deserve trust.
+
+The baseline throughout is a \textbf{minimal radar architecture} --- a
+single continuous-wave Doppler module for speed, one or two interferometric
+angle-radar modules for direction, a hardware impact trigger, and an
+embedded host. Representative parts are named where they are useful
+(the OmniPreSense OPS243-A at 24\,GHz, the RFbeam K-LD7, a Raspberry Pi
+class host), but nothing here depends on those specific choices. This
+configuration is a minimal but honest instance of the commercial radar
+architecture, and it is the cheapest starting point that measures anything
+directly.
+
+\section{Ball data}
+
+\begin{enumerate}
+\item \textbf{Ball speed} is the strongest channel in any radar design: the
+Doppler line is unambiguous, and $\pm0.5\%$ class accuracy from a commodity
+module matches commercial practice. Apply the aspect-angle (cosine)
+correction using the measured launch angles --- at 3--5\,ft behind the tee
+with a driver launch of $12\degs$ the radial underestimate is small but
+\emph{systematic}, and systematic errors are the ones that survive
+averaging.
+\item \textbf{Launch angles}: treat angle-radar bursts as a short
+trajectory, not a single detection. An EKF smoother over the ring buffer
+(\cref{sec:ekf}) with back-extrapolation to the impact timestamp is the
+single highest-leverage software upgrade for angle quality, and it costs
+nothing in hardware.
+\item \textbf{Spin rate} is where radar earns its reputation for
+inconsistency. A $\sim$50--60\% detection rate from I/Q sideband analysis is
+consistent with the physics rather than evidence of a bug: sideband SNR
+depends on ball-surface asymmetry and observation time
+(\cref{sec:radarspin}). Improvements in order of cost: longer observation
+windows (later trigger cutoff); cepstrum or harmonic-product comb estimation
+with equal-spacing qualification; marked-ball guidance for indoor use; and
+honest fallback --- report estimated spin from club type, speed and loft
+priors, clearly flagged, which is what Garmin does and documents.
+\emph{Patent caution:} the harmonic-sideband method is claimed by US8845442
+until $\sim$2029 in its US member (\cref{sec:fto}).
+\item \textbf{Spin axis} is out of reach of a short-flight radar
+installation: indoor flights are too short for trajectory inversion, and the
+direct receiver-pair method is patent-encumbered to $\sim$2035. The
+practical routes are optical, or a flagged model estimate from face-to-path.
+\end{enumerate}
+
+\section{Club data}
+
+\begin{enumerate}
+\item \textbf{Club speed}: define and document the reference point --- this
+is the single most consequential and most neglected decision in the whole
+design (\cref{sec:pathreference}). A CW module sees a smear of head and
+shaft returns; gating the pre-impact spectrum and taking a fixed percentile
+of the velocity distribution, rather than the maximum, approximates a stable
+reference and avoids the toe-speed inflation that plagues naive processors
+(\cref{sec:radarclub}). Validate smash factor against the loft-appropriate
+ceiling (\cref{sec:smash}) and flag violations rather than displaying them.
+\item \textbf{Club path} and \textbf{attack angle} from angle radar are
+legitimate direct measurements --- the same primitives a consumer radar unit
+measures. Alignment calibration dominates their accuracy, and no amount of
+signal processing recovers a misaimed sensor.
+\item \textbf{Face angle}: the D-plane inversion (\cref{eq:faceinversion})
+with the loft-dependent weight (\cref{eq:obliqueness}) is exactly what
+radar-only commercial units report. Implement it --- but label it
+\emph{derived}, propagate its error (a $1.32\times$ amplification of
+launch-direction bias at the measured weight; see the caution in
+\cref{sec:facepathweighting}), and suppress it on detected off-centre
+strikes once impact location is available. The D-plane forward model doubles
+as a simulator's launch generator, so one well-tested module serves both
+directions.
+\item \textbf{Impact location} requires optics. There is no radar route.
+The expired Acushnet stereo art (\cref{sec:patentacushnet}) and Wintriss
+mono-camera art (\cref{sec:wintriss}) provide complete public-domain
+recipes. Even a single overhead camera reading face fiducials converts face
+angle from \emph{derived} to \emph{measured}, which is the largest single
+jump available in \cref{tab:hierarchy}.
+\end{enumerate}
+
+\section{Capability tiers}
+
+The following tiers are cumulative. Each is a coherent product in its own
+right, and each is defined by what it moves from derived to measured rather
+than by a parts list.
+
+\begin{enumerate}
+\item \textbf{Tier 1 --- radar only.} EKF smoothing, comb-based spin with
+honest fallback, D-plane-derived face data with provenance flags,
+smash-factor sanity gates, and a documented alignment-calibration procedure.
+This delivers the consumer-radar feature set. Everything club-face-related
+is inferred.
+\item \textbf{Tier 2 --- add an optical spin and impact module.} One or two
+global-shutter cameras with an IR strobe, at modest incremental cost. The
+camera measures launch angles, 3D spin by dimple registration, and impact
+location; the radar keeps trigger, speed, and outdoor robustness. This is
+the same fusion every commercial vendor converged on --- and it can be built
+entirely from the expired-art side of the patent map (\cref{ch:patents}).
+\emph{Care:} avoid still-active claims around integrated ball-find and LED
+guidance, and around radar-steered image search windows.
+\item \textbf{Tier 3 --- true fusion.} A single EKF consuming radar speed,
+radar angles and camera fixes with per-sensor covariances; a flight model
+per \cref{ch:flight} with versioned coefficients; and a validation protocol
+per \cref{ch:accuracy}. The versioning matters more than it sounds:
+\cref{ch:flight} shows that a coefficient difference of 0.01 in $C_D$ is
+worth roughly eight yards, so an unversioned model change is a silent
+recalibration of every number the device has ever reported.
+\item \textbf{Tier 4 --- measured club delivery.} An imaging radar with
+custom chirp firmware feeding the screw-theoretic rigid-body estimator of
+\cref{app:screw}: per-detection Doppler rows solved for the club's twist,
+smoothed on $SE(3)$, and projected into club speed at a declared reference
+point, measured path and attack angle, closure rate, and an ISA-defined
+swing plane. This moves path and attack angle from \emph{derived} to
+\emph{measured} in \cref{tab:hierarchy}. Face angle and impact location
+remain with the optical module --- no radar architecture reaches them.
+\end{enumerate}
+
+\section{Reporting honesty as a design feature}
+
+The clearest lesson of this review is not about sensors at all.
+
+Commercial marketing blurs the measured/derived boundary, and the
+independent validation literature repeatedly punishes the derived
+quantities: clubhead velocity met research-grade tolerance on 54\% and 29\%
+of shots for the two devices ever tested against a traceable optical
+benchmark, and club orientation data was returned on only 62\% of shots
+overall --- 19\% for a utility wedge (\cref{ch:accuracy}). None of that
+appears on a specification sheet.
+
+An instrument can therefore differentiate itself by doing the opposite:
+tagging every reported parameter with its provenance (measured, derived, or
+estimated), its uncertainty, and the model version used, and reporting its
+own per-shot success rate rather than only its best-case tolerance.
+\Cref{tab:hierarchy} is effectively the schema for that tagging.
+
+Two vendors already demonstrate that this is commercially survivable rather
+than suicidal. Garmin publishes an explicit measured-versus-calculated split
+with tolerances on each side, and states outright that its face angle is
+algorithmic. TrackMan publishes the reference-point discrepancy between its
+own quantities and warns that numbers from different methodologies
+``aren't comparable.'' Both remain market leaders in their segments. The
+honest disclosure did not cost them anything, and it is the closest thing
+this industry has to a standard worth adopting.

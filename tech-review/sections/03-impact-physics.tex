@@ -36,21 +36,21 @@ the ``new ball flight laws.''
 \centering
 \begin{tikzpicture}[scale=1.05,>=Stealth]
   % target line
-  \draw[ofgray,dashed,->] (0,0) -- (9.5,0) node[right] {\small target line};
+  \draw[accentgray,dashed,->] (0,0) -- (9.5,0) node[right] {\small target line};
   % club path vector
-  \draw[thick,ofgreen,->] (0,0) -- ({8*cos(-6)},{8*sin(-6)})
+  \draw[thick,accentgreen,->] (0,0) -- ({8*cos(-6)},{8*sin(-6)})
     node[below right] {\small club path $\uvec{p}$ ($-6\degs$)};
   % face normal
-  \draw[thick,ofblue,->] (0,0) -- ({8*cos(-2)},{8*sin(-2)})
+  \draw[thick,accentblue,->] (0,0) -- ({8*cos(-2)},{8*sin(-2)})
     node[above right] {\small face normal $\uvec{n}$ ($-2\degs$)};
   % launch direction
   \draw[very thick,red!70!black,->] (0,0) -- ({8.6*cos(-2.6)},{8.6*sin(-2.6)})
     node[right] {\small launch $\approx 0.76\varphi_f + 0.24\varphi_p$};
   % angle arcs
-  \draw[ofgray] (2.2,0) arc[start angle=0,end angle=-6,radius=2.2];
-  \node[ofgray] at (2.9,-0.32) {\footnotesize $\varphi_p$};
-  \draw[ofgray] (4.6,0) arc[start angle=0,end angle=-2,radius=4.6];
-  \node[ofgray] at (5.3,-0.09) {\footnotesize $\varphi_f$};
+  \draw[accentgray] (2.2,0) arc[start angle=0,end angle=-6,radius=2.2];
+  \node[accentgray] at (2.9,-0.32) {\footnotesize $\varphi_p$};
+  \draw[accentgray] (4.6,0) arc[start angle=0,end angle=-2,radius=4.6];
+  \node[accentgray] at (5.3,-0.09) {\footnotesize $\varphi_f$};
 \end{tikzpicture}
 \caption{Horizontal D-plane geometry (top view, right-handed golfer,
 out-to-in ``fade'' delivery). The ball launches close to the face
@@ -92,7 +92,7 @@ holds ($0.83 \pm 0.08$), the horizontal one does not ($0.76 \pm 0.08$).
 This is a live vendor-versus-measurement disagreement, not a rounding
 difference or a units error.
 
-For OpenFlight this matters directly: inverting
+This matters directly for any radar-first system: inverting
 Eq.~\eqref{eq:launchweight} to recover face angle amplifies any bias in
 measured launch direction by $1/w_f$. At $w_f = 0.76$ that is $1.32$, not
 the $1.15$ implied by $0.85$---roughly twice the error sensitivity.
@@ -146,7 +146,7 @@ shot-shaping rule for a ball that curves back to the target line:
 $\theta_{\mathrm{axis}} \approx -2.5\times$ the horizontal launch angle.
 
 \begin{implication}
-OpenFlight measures launch direction (K-LD7 horizontal) and club
+A radar-first system typically measures launch direction and club
 path. \Cref{eq:launchweight} then yields face angle by inversion:
 $\varphi_f = (\varphi_{\mathrm{launch}} - (1-w_f)\varphi_p)/w_f$. Because
 $1/w_f \approx 1.15$, any systematic launch-direction bias is
@@ -187,7 +187,7 @@ Max smash factor & 1.488 & 1.465 & 1.398 & 1.288 \\
 This table is a built-in sanity check: a measured smash factor above the
 loft-appropriate ceiling indicates a measurement error --- most commonly a
 radar unit reporting toe speed or shaft speed instead of
-geometric-center club speed. OpenFlight should flag physically impossible
+geometric-center club speed. An implementation should flag physically impossible
 smash values instead of displaying them.
 \end{keypoint}
 
@@ -250,7 +250,7 @@ Irons have shallow CG depth, hence weak gear effect and flat faces.
 Gear effect is why \emph{impact location} is the most valuable club
 parameter a launch monitor can add after path/face: without it, a pure
 D-plane inversion misattributes gear-effect spin-axis tilt to face-to-path.
-For a radar-only OpenFlight this is a fundamental, quantifiable error
+For a radar-only system this is a fundamental, quantifiable error
 source on off-center driver strikes (up to several degrees of apparent
 face-to-path); \cref{eq:gear} bounds it, and an optical impact-location
 add-on (\cref{ch:implications}) removes it.

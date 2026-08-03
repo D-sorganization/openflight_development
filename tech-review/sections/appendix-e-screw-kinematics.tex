@@ -1,7 +1,7 @@
 \chapter{Clubhead Kinematics from Radar Velocities: A Screw-Theoretic How-To}
 \label{app:screw}
 
-This appendix develops, at implementation depth, the estimation layer that turns per-detection radar velocities into clubhead motion: what the current OpenFlight hardware can and cannot recover, why the twist (screw) representation of rigid-body motion is the natural formalism for the problem, and a step-by-step recipe for building the estimator on the IWR6843-class sensor described in \cref{app:hardware}.
+This appendix develops, at implementation depth, the estimation layer that turns per-detection radar velocities into clubhead motion: what commodity radar hardware can and cannot recover, why the twist (screw) representation of rigid-body motion is the natural formalism for the problem, and a step-by-step recipe for building the estimator on the IWR6843-class sensor described in \cref{app:hardware}.
 It extends the EKF architecture of \cref{app:ekf} from point tracking (the ball) to rigid-body tracking (the club).
 
 \section{Context: what the commercial systems actually recover}
@@ -15,7 +15,7 @@ What is fitted to those observations is a \emph{rigid-body motion model}, not an
 There is no public evidence that TrackMan (or any launch-monitor vendor) formulates this fit in screw/twist coordinates: the patents describe point-trajectory tracking, Doppler-component decomposition, and silhouette correlation, without reference to the screw formalism~\cite{us8845442,us10850179}.
 The instantaneous screw axis (ISA) \emph{is}, however, an established tool in golf biomechanics: Vena et al.\ applied ISA theory to optical motion capture of the swing in a two-part \emph{Sports Engineering} study, verifying that segment motion during the downswing is dominantly rotational about a well-defined moving axis (at least 71\% of marker velocity attributable to ISA rotation) and using ISA smoothness to characterize the kinematic sequence~\cite{vena2010a,vena2010b}.
 The contribution proposed here --- estimating the club's twist \emph{directly from Doppler detections} rather than from marker positions --- is, to our knowledge, not published in the golf literature, although the underlying mathematics is standard in robotics~\cite{murrayliss} and radar micro-Doppler analysis~\cite{chenmicrodoppler}.
-For OpenFlight this is an opportunity: the formalism is public-domain mathematics, distinct from the specific claimed pipelines in \cref{app:patents}.
+This is an opportunity for any implementer: the formalism is public-domain mathematics, distinct from the specific claimed pipelines in \cref{app:patents}.
 
 \section{Screw theory in the minimum required dose}
 \label{sec:screw-primer}
@@ -71,7 +71,7 @@ This is the property that makes the screw formulation not merely elegant but \em
 \section{What the current hardware can observe}
 \label{sec:screw-ceiling}
 
-Apply \cref{eq:screw-ls} to each OpenFlight sensor to see the ceiling precisely.
+Apply \cref{eq:screw-ls} to each sensor in a given architecture to see the ceiling precisely.
 
 \subsection{OPS243-A: one row, no position}
 The OPS243-A has a single receive channel: it measures $\dot d_i$ but neither range nor angle, so $\vect{p}_i$ is unknown and \cref{eq:screw-ls} cannot be assembled.

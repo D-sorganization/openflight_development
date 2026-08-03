@@ -1,4 +1,4 @@
-% Shared preamble for the OpenFlight launch monitor technology review
+% Shared preamble for the launch monitor technology review
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage{lmodern}
@@ -32,20 +32,20 @@
 \setlength{\bibitemsep}{0.5ex}
 
 % Color scheme
-\definecolor{ofblue}{RGB}{20,60,110}
-\definecolor{ofgray}{RGB}{90,95,100}
-\definecolor{ofgreen}{RGB}{25,110,60}
+\definecolor{accentblue}{RGB}{20,60,110}
+\definecolor{accentgray}{RGB}{90,95,100}
+\definecolor{accentgreen}{RGB}{25,110,60}
 
 \titleformat{\chapter}[display]
-  {\normalfont\huge\bfseries\color{ofblue}}
+  {\normalfont\huge\bfseries\color{accentblue}}
   {\chaptertitlename\ \thechapter}{12pt}{\Huge}
 \titlespacing*{\chapter}{0pt}{0pt}{24pt}
-\titleformat*{\section}{\Large\bfseries\color{ofblue}}
-\titleformat*{\subsection}{\large\bfseries\color{ofgray}}
+\titleformat*{\section}{\Large\bfseries\color{accentblue}}
+\titleformat*{\subsection}{\large\bfseries\color{accentgray}}
 
 \pagestyle{fancy}
 \fancyhf{}
-\fancyhead[L]{\small\itshape OpenFlight Technology Review}
+\fancyhead[L]{\small\itshape Launch Monitor Technology}
 \fancyhead[R]{\small\itshape\nouppercase{\leftmark}}
 \fancyfoot[C]{\thepage}
 \renewcommand{\headrulewidth}{0.4pt}
@@ -60,16 +60,17 @@
 \newcommand{\vect}[1]{\bm{#1}}
 \newcommand{\uvec}[1]{\hat{\bm{#1}}}
 
-% Callout box for design implications
+% Callout box for design implications. Generic by design: this box flags a
+% consequence an implementer must act on, independent of any particular product.
 \usepackage[most]{tcolorbox}
 \newtcolorbox{implication}{
-  colback=ofgreen!6, colframe=ofgreen!70!black,
-  title=Implication for OpenFlight, fonttitle=\bfseries,
+  colback=accentgreen!6, colframe=accentgreen!70!black,
+  title=Design implication, fonttitle=\bfseries,
   boxrule=0.6pt, arc=2pt, left=6pt, right=6pt, top=4pt, bottom=4pt,
   breakable
 }
 \newtcolorbox{keypoint}{
-  colback=ofblue!5, colframe=ofblue!70,
+  colback=accentblue!5, colframe=accentblue!70,
   title=Key point, fonttitle=\bfseries,
   boxrule=0.6pt, arc=2pt, left=6pt, right=6pt, top=4pt, bottom=4pt,
   breakable

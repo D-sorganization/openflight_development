@@ -55,7 +55,7 @@ three receivers~\cite{us10850179}; the Garmin R10 uses a three-receiver
 aperture as a phased antenna array~\cite{flightscopex3}.
 
 \begin{implication}
-OpenFlight's architecture --- OPS243-A for speed plus two K-LD7 modules for
+A minimal radar architecture --- one CW Doppler module for speed plus two angle-radar modules for
 vertical and horizontal angles --- is a physically separated version of
 what commercial units do on one board: the K-LD7's RADC mode exposes raw
 ADC data from its two receive patches, and per-bin phase comparison
@@ -253,6 +253,6 @@ ML pipeline alongside its CW+FMCW radar~\cite{fullswingkit}.
 Every major radar vendor has independently concluded that pure Doppler is
 insufficient at short range --- for spin axis, impact location, and
 club-face data --- and has added optical sensing or instrumented balls.
-This is the strongest architectural signal in the market for OpenFlight's
+This is the strongest architectural signal in the market for a radar-first design's
 roadmap.
 \end{keypoint}

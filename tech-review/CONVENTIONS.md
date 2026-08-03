@@ -19,7 +19,7 @@ tech-review/
 ├── README.md                # reader-facing summary of the report
 ├── sections/                # one file per chapter or appendix
 │   ├── abstract.tex
-│   ├── 01-introduction.tex … 10-openflight-implications.tex
+│   ├── 01-introduction.tex … 10-design-guidance.tex
 │   └── appendix-a-references.tex … appendix-d-patent-compendium.tex
 └── research/                # raw research dossiers (provenance, not published)
 ```
@@ -120,8 +120,18 @@ Defined in `preamble.tex` — use these instead of ad-hoc formatting:
 | `\mph`, `\rpm` | Speed and spin units with correct spacing |
 | `\vect{v}` | Bold vector |
 | `\uvec{n}` | Unit vector (hat + bold) |
-| `\begin{implication}…\end{implication}` | Green callout: what this means for OpenFlight |
+| `\begin{implication}…\end{implication}` | Green callout: a consequence an implementer must act on |
 | `\begin{keypoint}…\end{keypoint}` | Blue callout: a load-bearing conclusion |
+| `\begin{warning}…\end{warning}` | Red callout: a claim that is wrong, contested, or untraceable |
+
+### Neutrality
+
+This document is vendor- and project-neutral. Name a product only as
+**evidence** — a published definition, a measured tolerance, a patent claim —
+never as a design target or an endorsement. Write guidance for "an
+implementer" or "a radar-first system", not for any particular project. If a
+section can only be written by assuming one specific architecture, it belongs
+in Chapter 10 as a capability tier, not in the body chapters.
 
 Add new macros to `preamble.tex`, never inline in a section. Watch for name
 collisions with loaded packages: `\unit` was already claimed by `siunitx`, which
@@ -156,6 +166,23 @@ cd tech-review && latexmk -pdf main.tex
 `latexmk` runs biber automatically. The manual sequence is
 pdflatex → biber → pdflatex → pdflatex; a single pass will show `[?]` citation
 marks and a stale table of contents.
+
+**Verify with the same flags CI uses, and check the exit code.** CI passes
+`-halt-on-error`. Without it, pdflatex recovers from a fatal error, continues,
+and still emits a PDF — so a log-grep for error strings can come back clean on a
+build that CI will reject. Check `$LASTEXITCODE` (or `$?`) rather than trusting
+a grep:
+
+```bash
+pdflatex -halt-on-error -file-line-error -interaction=nonstopmode main.tex
+```
+
+Two failure modes worth knowing. An **undefined colour or macro** only surfaces
+where it is *used*, which may be a chapter away from the definition you edited —
+rename theme colours across `preamble.tex` *and* every `sections/*.tex` in the
+same commit. And on Windows, an **open PDF viewer file-locks `main.pdf`**, which
+makes pdflatex fail with "I can't write on file" and leaves a stale PDF in
+place; build with `-jobname=verify` to check without touching the locked file.
 
 **In CI:** `.github/workflows/tech-review.yml` compiles the document on every
 push and pull request that touches `tech-review/`, fails on LaTeX errors and on

@@ -148,7 +148,7 @@ radar has, solved with markers instead of models.
 \label{sec:diy}
 
 \textbf{PiTrac}~\cite{pitrac} is the flagship open-source photometric
-build and the most relevant external project to OpenFlight. Instead of
+build and the most relevant open-source precedent. Instead of
 multi-kfps cameras it uses \emph{strobed multi-exposure capture}: an IR
 LED array pulses several times within one long exposure of a $\sim$\$50
 Raspberry Pi Global Shutter camera, freezing multiple ball images in a
@@ -165,8 +165,8 @@ architecture is a direct descendant of the now-expired Wintriss patents
 
 \begin{implication}
 PiTrac proves that commodity global-shutter sensors + IR strobing deliver
-photometric-grade launch and spin measurement at OpenFlight's price
-point. For OpenFlight the natural division of labor is: keep the radar
+photometric-grade launch and spin measurement at hobbyist price
+point. For a radar-first system the natural division of labor is: keep the radar
 core for speed/trigger robustness and outdoor use, and adopt a
 PiTrac-style strobed camera as the spin/impact-location module indoors
 --- the same fusion direction every commercial vendor has taken, from the

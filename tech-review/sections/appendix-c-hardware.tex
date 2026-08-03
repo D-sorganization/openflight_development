@@ -1,12 +1,18 @@
 \chapter{Sensor Hardware and Integration Reference}
 \label{app:hardware}
 
-This appendix is a specification-level reference for OpenFlight's actual
-and planned building blocks, drawn from vendor datasheets and application
-notes (all linked). Notably, OmniPreSense's own sports application note
-AN-029 documents the exact OpenFlight golf configuration and cites the
-OpenFlight repository by name as its reference
-implementation~\cite{an029}.
+This appendix is a specification-level reference for the commodity sensing
+components a launch monitor can be built from, drawn from vendor datasheets
+and application notes (all linked). The parts covered here are
+representative rather than prescriptive: they are the modules for which
+manufacturers publish enough detail to reason about performance, which makes
+them useful worked examples whether or not they end up in a given design.
+
+Two of them are documented for this application by their own manufacturers.
+OmniPreSense's sports application note AN-029 covers a golf configuration
+directly~\cite{an029}, which is unusual and worth exploiting --- most radar
+modules are documented for traffic and presence sensing, leaving the
+sports-specific parameters to be derived from first principles.
 
 \section{OmniPreSense OPS243-A (24\,GHz CW Doppler)}
 
@@ -39,10 +45,10 @@ From AN-027~\cite{an027}: \texttt{G1} enters rolling-buffer mode with a
 fixed \textbf{4096-sample I/Q buffer organized as 32 segments of 128
 samples}; trigger by software (\texttt{S!}) or a 3.3\,V rising edge on
 \textbf{J3 pin 3 (HOST\_INT)}; \texttt{S\#n} sets the pre/post-trigger
-split (default 8 $\to$ 1024 pre + 3072 post). At OpenFlight's 30\,ksps
+split (default 8 $\to$ 1024 pre + 3072 post). At 30\,ksps
 the buffer spans 136.5\,ms with a 208.5\,mph ceiling --- AN-027's
 ``golf ball setting.'' The app note wires a \textbf{SparkFun SEN-14262
-Gate output directly to HOST\_INT} (OpenFlight's exact trigger) and
+Gate output directly to HOST\_INT} (the standard hardware-trigger wiring) and
 flags the acoustic-latency budget: sound from 2\,m arrives
 $\sim$6.6\,ms late, so the pre-trigger split must cover the
 impact-to-trigger gap (their example \texttt{S\#18}).
@@ -67,24 +73,24 @@ the interferometric baseline of \cref{eq:interferometry}; beam
 Rx1--Rx2 phase difference}; distance 5\,cm--100\,m (resolution 5\,cm at
 the 5\,m range setting); speed 0.1--100\,km/h --- note the
 \textbf{62\,mph speed ceiling}, which confines the K-LD7 to angle and
-club-speed work; ball speed must come from the OPS243-A. Frame time at
+club-speed work; ball speed must come from a separate CW module. Frame time at
 the 100\,km/h setting is 29\,ms ($\sim$34\,Hz).
 
 UART protocol (115200\,8E1 default, to 3\,Mbaud via \texttt{INIT}):
 message types \texttt{RADC} (raw ADC: 256\,I + 256\,Q for Rx1@$f_A$,
-Rx2@$f_A$, Rx1@$f_B$ --- the payload OpenFlight's interferometry
+Rx2@$f_A$, Rx1@$f_B$ --- the payload an interferometric angle solution
 consumes), \texttt{RFFT} (spectrum + threshold), \texttt{PDAT} (up to
 12 raw targets: distance/speed/angle/magnitude), \texttt{TDAT}
 (tracked target), \texttt{DDAT} (flags), \texttt{DONE} (frame counter
 --- use it to detect dropped frames); requested via the \texttt{GNFD}
 bitfield. Configuration: \texttt{RSPI} max speed, \texttt{RRAI} max
 range, \texttt{THOF} threshold offset (10--60\,dB), \texttt{RBFR} base
-frequency (three channels for multi-module coexistence --- set the two
-OpenFlight units to different channels), \texttt{TRFT} tracking filter,
+frequency (three channels for multi-module coexistence --- set
+co-located units to different channels), \texttt{TRFT} tracking filter,
 detection-window bounds (\texttt{MIRA}/\texttt{MARA}/\texttt{MIAN}/
 \texttt{MAAN}/\texttt{MISP}/\texttt{MASP}). Positive speed = receding.
 
-\section{TI IWR6843 (60--64\,GHz FMCW MIMO, on order)}
+\section{TI IWR6843 (60--64\,GHz FMCW MIMO)}
 
 Per the datasheet~\cite{iwr6843}: 60--64\,GHz with \textbf{4\,GHz
 chirp bandwidth} ($\sim$3.75\,cm native range resolution);
@@ -100,9 +106,10 @@ launch window}; using the IWR6843 for launch measurement requires a
 custom chirp/frame configuration (short frames, high Doppler span) and
 low-level processing, for which TI's people-tracking labs
 (TIDEP-01000/01010) are the closest starting points~\cite{iwr6843}.
-TI's forums confirm no golf-specific lab exists. The natural OpenFlight
+TI's forums confirm no golf-specific lab exists. The natural
 role: a single sensor that measures range, angle, and radial speed
-simultaneously (replacing both K-LD7s) once custom chirp work is done.
+simultaneously --- replacing a pair of single-baseline angle modules ---
+once the custom chirp work is done.
 
 \section{Raspberry Pi Global Shutter camera (optical module)}
 
@@ -122,7 +129,7 @@ use of this sensor.
 \label{app:gspro}
 
 GSPro's Open Connect v1~\cite{gspro} is the only fully documented open
-launch-monitor protocol and should be OpenFlight's native output
+launch-monitor protocol and is the sensible native output
 (PiTrac ships it; E6/TruGolf and Foresight FSX require partnership
 agreements~\cite{pitrac}). Mechanics: JSON over TCP to
 \texttt{127.0.0.1:0921}, launch monitor as client. Minimum shot
@@ -175,7 +182,7 @@ ball simulated at ALC conditions must not materially exceed
 
 \section{Detection theory: CFAR selection}
 
-OpenFlight's current CFAR (SNR $>15$ over a 150-bin DC mask) is a
+A typical CFAR setting (SNR $>15$ over a 150-bin DC mask) is a
 cell-averaging scheme. The radar literature~\cite{cfartutorial}
 distinguishes: CA-CFAR (mean of training cells around the cell under
 test, guard cells excluded; threshold $\alpha\hat P_n$ with $\alpha$

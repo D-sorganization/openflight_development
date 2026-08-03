@@ -12,11 +12,10 @@ they all implement the same underlying physics: an oblique-impact collision
 model connecting club delivery to ball launch, and an aerodynamic model
 connecting ball launch to flight.
 
-This review is written to support the development of
-\textbf{OpenFlight}\footnote{\url{https://github.com/jewbetcha/openflight}
---- AGPL-3.0; a DIY launch monitor built on the OmniPreSense OPS243-A
-24\,GHz Doppler radar, RFbeam K-LD7 angle radars, a sound-trigger board, and
-a Raspberry~Pi~5.}, an open-source launch monitor. Its goals are:
+This review is a technical reference on how launch monitors work. It is
+written for engineers building or evaluating such a system, for researchers
+using one as an instrument, and for anyone who needs to know what a reported
+number actually represents. Its goals are:
 
 \begin{enumerate}[itemsep=2pt]
   \item catalogue \emph{how each major commercial system works}, at the level
@@ -27,16 +26,24 @@ a Raspberry~Pi~5.}, an open-source launch monitor. Its goals are:
         and club path;
   \item survey the governing \emph{patent landscape}, since the strongest
         public documentation of these proprietary methods is found in the
-        patents themselves, and since freedom-to-operate matters to an
-        open-source project;
+        patents themselves, and since freedom-to-operate constrains any
+        new entrant;
   \item collect the \emph{physics and algorithms} (D-plane, impact mechanics,
         gear effect, aerodynamic coefficients, spectral spin estimation,
         stereo triangulation, Kalman filtering) that any implementation
         needs; and
-  \item translate all of the above into \emph{concrete design guidance} for
-        OpenFlight's radar-first architecture and its possible optical
-        extensions.
+  \item translate all of the above into \emph{concrete design guidance},
+        organised by sensing architecture rather than by product.
 \end{enumerate}
+
+\begin{keypoint}
+A note on neutrality. Products are named throughout, and often criticised.
+That is because published vendor definitions, patent claims and measured
+tolerances are the primary evidence available in this field --- the
+peer-reviewed literature is thin, as \cref{ch:accuracy} documents. Naming a
+system is a citation, not a recommendation, and no architecture in this
+review is presented as the one to build.
+\end{keypoint}
 
 \section{The two sensing families}
 
@@ -78,7 +85,7 @@ depth. \Cref{ch:survey} surveys the commercial devices.
 \Cref{ch:patents} maps the patent landscape with expiry status.
 \Cref{ch:flight} covers ball-flight aerodynamics and trajectory estimation.
 \Cref{ch:accuracy} reviews the independent validation literature.
-\Cref{ch:implications} distills the implications for OpenFlight.
+\Cref{ch:implications} distills the review into design guidance.
 
 \begin{keypoint}
 Throughout, we use a right-handed coordinate system for a right-handed

@@ -92,7 +92,7 @@ holds ($0.83 \pm 0.08$), the horizontal one does not ($0.76 \pm 0.08$).
 This is a live vendor-versus-measurement disagreement, not a rounding
 difference or a units error.
 
-For OpenFlight this matters directly: inverting
+This matters directly for any radar-first system: inverting
 Eq.~\eqref{eq:launchweight} to recover face angle amplifies any bias in
 measured launch direction by $1/w_f$. At $w_f = 0.76$ that is $1.32$, not
 the $1.15$ implied by $0.85$---roughly twice the error sensitivity.
@@ -146,7 +146,7 @@ shot-shaping rule for a ball that curves back to the target line:
 $\theta_{\mathrm{axis}} \approx -2.5\times$ the horizontal launch angle.
 
 \begin{implication}
-OpenFlight measures launch direction (K-LD7 horizontal) and club
+A radar-first system typically measures launch direction and club
 path. \Cref{eq:launchweight} then yields face angle by inversion:
 $\varphi_f = (\varphi_{\mathrm{launch}} - (1-w_f)\varphi_p)/w_f$. Because
 $1/w_f \approx 1.15$, any systematic launch-direction bias is
@@ -187,7 +187,7 @@ Max smash factor & 1.488 & 1.465 & 1.398 & 1.288 \\
 This table is a built-in sanity check: a measured smash factor above the
 loft-appropriate ceiling indicates a measurement error --- most commonly a
 radar unit reporting toe speed or shaft speed instead of
-geometric-center club speed. OpenFlight should flag physically impossible
+geometric-center club speed. An implementation should flag physically impossible
 smash values instead of displaying them.
 \end{keypoint}
 
@@ -250,7 +250,7 @@ Irons have shallow CG depth, hence weak gear effect and flat faces.
 Gear effect is why \emph{impact location} is the most valuable club
 parameter a launch monitor can add after path/face: without it, a pure
 D-plane inversion misattributes gear-effect spin-axis tilt to face-to-path.
-For a radar-only OpenFlight this is a fundamental, quantifiable error
+For a radar-only system this is a fundamental, quantifiable error
 source on off-center driver strikes (up to several degrees of apparent
 face-to-path); \cref{eq:gear} bounds it, and an optical impact-location
 add-on (\cref{ch:implications}) removes it.

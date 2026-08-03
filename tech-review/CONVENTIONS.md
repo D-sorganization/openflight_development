@@ -19,7 +19,7 @@ tech-review/
 ├── README.md                # reader-facing summary of the report
 ├── sections/                # one file per chapter or appendix
 │   ├── abstract.tex
-│   ├── 01-introduction.tex … 10-openflight-implications.tex
+│   ├── 01-introduction.tex … 10-design-guidance.tex
 │   └── appendix-a-references.tex … appendix-d-patent-compendium.tex
 └── research/                # raw research dossiers (provenance, not published)
 ```
@@ -120,8 +120,18 @@ Defined in `preamble.tex` — use these instead of ad-hoc formatting:
 | `\mph`, `\rpm` | Speed and spin units with correct spacing |
 | `\vect{v}` | Bold vector |
 | `\uvec{n}` | Unit vector (hat + bold) |
-| `\begin{implication}…\end{implication}` | Green callout: what this means for OpenFlight |
+| `\begin{implication}…\end{implication}` | Green callout: a consequence an implementer must act on |
 | `\begin{keypoint}…\end{keypoint}` | Blue callout: a load-bearing conclusion |
+| `\begin{warning}…\end{warning}` | Red callout: a claim that is wrong, contested, or untraceable |
+
+### Neutrality
+
+This document is vendor- and project-neutral. Name a product only as
+**evidence** — a published definition, a measured tolerance, a patent claim —
+never as a design target or an endorsement. Write guidance for "an
+implementer" or "a radar-first system", not for any particular project. If a
+section can only be written by assuming one specific architecture, it belongs
+in Chapter 10 as a capability tier, not in the body chapters.
 
 Add new macros to `preamble.tex`, never inline in a section. Watch for name
 collisions with loaded packages: `\unit` was already claimed by `siunitx`, which

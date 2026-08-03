@@ -2,7 +2,7 @@
 
 A comprehensive LaTeX technology review of how commercial golf launch monitors
 work — radar physics, camera photogrammetry, patent landscape, and the
-club/ball parameter calculations — written to guide OpenFlight development.
+club/ball parameter calculations — a vendor-neutral technical reference.
 
 > **Contributing?** Read **[CONVENTIONS.md](CONVENTIONS.md)** first — it covers file
 > layout, labels, citation keys, prose style, and the build. This document is
@@ -28,11 +28,11 @@ club/ball parameter calculations — written to guide OpenFlight development.
 7. Patent landscape — TrackMan/Tuxen, Foresight/Wintriss, FlightScope/EDH, Acushnet, with freedom-to-operate map
 8. Ball flight models — Smits–Smith / Quintavalla aerodynamics, EKF trajectory estimation
 9. Accuracy — Leach 2017 and the validation literature
-10. Implications for OpenFlight — phased roadmap (radar hardening → optical spin/impact module → fusion)
+10. Design guidance for implementers — capability tiers (radar hardening → optical spin/impact module → fusion → measured club delivery)
 
 Appendix A — Live reference library: every source as a clickable link, organized by category (patents, FCC filings, manufacturer docs, peer-reviewed literature, engineering references, DIY projects, comparative testing)
 
-Appendix C — Sensor hardware and integration reference: OPS243-A specs/API/rolling buffer + the AN-029 vendor golf recipe (which cites OpenFlight by name), K-LD7 datasheet + UART protocol, IWR6843 FMCW specifics, Pi Global Shutter XTR triggering, the full GSPro Open Connect schema, USGA equipment constants, and CFAR selection guidance
+Appendix C — Sensor hardware and integration reference: OPS243-A specs/API/rolling buffer + the AN-029 vendor golf recipe (a vendor-published golf configuration), K-LD7 datasheet + UART protocol, IWR6843 FMCW specifics, Pi Global Shutter XTR triggering, the full GSPro Open Connect schema, USGA equipment constants, and CFAR selection guidance
 
 Appendix D — Patent portfolio compendium: every identified US patent for TrackMan (all 45 on their legal page + 7 more), Topgolf Sweden/Toptracer, FlightScope/EDH, Full Swing (US11311789 grant), Garmin, Rapsodo, Foresight/Wintriss, Creatz/Uneekor, Golfzon, Acushnet (back to the ancestral 1977 US4136387), plus prior art (Sports Sensors, Weibel, Stalker) — each number hotlinked to Google Patents, with two attribution corrections (US10596416 family = Toptracer, not TrackMan)
 

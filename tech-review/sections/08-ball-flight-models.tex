@@ -59,7 +59,7 @@ real flights.
 \end{description}
 
 \begin{implication}
-OpenFlight should ship Smits--Smith (\cref{eq:smits}) with spin decay as
+An implementation should ship Smits--Smith (\cref{eq:smits}) with spin decay as
 the default flight model, structured so a Quintavalla-style six-term fit
 can drop in, and calibrate against measured outdoor trajectories (or
 MLM2PRO reference data) using the US6186002 trajectory-fitting approach.
@@ -86,7 +86,7 @@ confidence weighting is the clean way to fuse heterogeneous sensors
 (OPS243-A speed, K-LD7 angles, future camera fixes).
 
 \begin{implication}
-OpenFlight currently correlates K-LD7 angle bursts with the OPS243-A
+A two-module radar design correlates angle-radar bursts with the CW
 impact timestamp and reads angles from single detections. Migrating to a
 short EKF smoother over the full K-LD7 ring-buffer burst --- even 10--20
 detections over 50\,ms --- would use all available data, reject outlier

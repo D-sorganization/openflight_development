@@ -128,9 +128,52 @@ specific claims they support.
   \url{https://www.trackman.com/blog/golf/two-radars-one-camera-zero-doubt}
 \item Tech specs (TM4, iO):
   \url{https://www.trackman.com/golf/launch-monitors/tech-specs}
-\item Ball Flight Laws newsletter (Jan.\ 2009; D-plane, 85/15):
+\item Ball Flight Laws newsletter (Jan.\ 2009; D-plane, and the origin of
+  the ``85/15'' rule of thumb---see \S\ref{sec:facepathweighting} for why
+  the measured horizontal weight is $0.76$):
   \url{https://www.yumpu.com/en/document/view/11652756/trackman-ball-flight-laws}
 \end{itemize}
+
+\subsection{The TrackMan newsletter archive}
+
+Every official TrackMan newsletter URL now returns 404, and the Wayback
+captures are redirect stubs. A complete live third-party mirror of issues
+\#1--\#10 exists and is the richest single source of TrackMan-published
+numbers anywhere. All at
+\url{https://www.gregsmithgolfcoach.com/wp-content/uploads/2014/04/}:
+
+\begin{itemize}\itemsep2pt
+\item \texttt{newsletter1.pdf} (Nov 2007) through \texttt{newsletter9.pdf}
+  (Jan 2013), sequentially numbered.
+\item \texttt{TrackMan\_Newsletter\_2014.pdf} is issue \#10 (Jan 2014); the
+  filename convention changed, which is why sequential guesses fail. The
+  series ends there.
+\item \textbf{\#7 (Oct 2010), ``Ten Fundamentals''} is the origin of most
+  TrackMan rules of thumb, including the 85/15 claim in both planes, the
+  spin-loft subtraction stated as a definition, and ``the spin rate drops
+  during ball flight---typically 4\% for each second.''
+\item \textbf{\#9 (Jan 2013)} carries the canonical club-delivery
+  definitions (all specifying maximum compression) and the only published
+  TrackMan accuracy specification located: for TrackMan III/IIIe at 95\%
+  confidence, club speed $\pm1.5$~mph, attack angle $\pm1.0\degs$, club path
+  $\pm1.0\degs$, dynamic loft $\pm0.8\degs$, face angle $\pm0.6\degs$.
+\item \textbf{\#8 (Jun 2011)} quantifies bulge: a $\SI{12.7}{\milli\metre}$
+  heel-ward impact makes the face angle $2\degs$ closed at that point
+  relative to face centre, ``for all drivers on the market.''
+\end{itemize}
+
+\begin{warning}
+Those TrackMan accuracy figures are the manufacturer's own. Independent
+testing against a traceable optical benchmark
+(Leach et al.\ 2017,
+\url{https://doi.org/10.1016/j.measurement.2017.08.009}) found club
+path met $\pm1\degs$ on
+only $45\%$ of shots and face angle on $66\%$, and that full clubhead
+parameters were returned on just $62\%$ of shots overall---$19\%$ for a
+utility wedge. For OpenFlight the lesson is that a published tolerance and a
+per-shot success rate are different specifications, and only the first is
+ever advertised.
+\end{warning}
 
 \subsection*{Foresight Sports}
 \begin{itemize}\small

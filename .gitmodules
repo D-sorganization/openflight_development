@@ -1,0 +1,3 @@
+[submodule "vendor/affinedrift"]
+	path = vendor/affinedrift
+	url = https://github.com/D-sorganization/AffineDrift.git

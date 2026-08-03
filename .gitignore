@@ -20,17 +20,6 @@ session_*.jsonl
 # Local-only scratch
 scratch/
 
-# LaTeX build artifacts
-tech-review/*.aux
-tech-review/*.log
-tech-review/*.out
-tech-review/*.toc
-tech-review/*.lof
-tech-review/*.lot
-tech-review/*.bbl
-tech-review/*.bcf
-tech-review/*.blg
-tech-review/*.run.xml
-tech-review/*.fdb_latexmk
-tech-review/*.fls
-tech-review/*.synctex.gz
+# The technology review moved to vendor/affinedrift/ (a git submodule); its
+# LaTeX build artifacts are AffineDrift's .gitignore concern now, not this
+# repo's.

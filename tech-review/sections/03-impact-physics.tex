@@ -45,7 +45,7 @@ the ``new ball flight laws.''
     node[above right] {\small face normal $\uvec{n}$ ($-2\degs$)};
   % launch direction
   \draw[very thick,red!70!black,->] (0,0) -- ({8.6*cos(-2.6)},{8.6*sin(-2.6)})
-    node[right] {\small launch $\approx 0.85\varphi_f + 0.15\varphi_p$};
+    node[right] {\small launch $\approx 0.76\varphi_f + 0.24\varphi_p$};
   % angle arcs
   \draw[ofgray] (2.2,0) arc[start angle=0,end angle=-6,radius=2.2];
   \node[ofgray] at (2.9,-0.32) {\footnotesize $\varphi_p$};
@@ -72,15 +72,45 @@ horizontal launch direction between face angle and club path:
 \qquad
 w_f \approx
 \begin{cases}
-  0.85\text{--}0.87 & \text{driver} \\
-  0.75 & \text{short irons / wedges.}
+  0.76 \pm 0.08 & \text{driver} \\
+  0.69 & \text{7-iron} \\
+  0.61 & \text{wedge.}
 \end{cases}
 \end{equation}
-The weight is loft- and friction-dependent: more loft means a more oblique
-impact, hence a larger tangential (friction-driven) momentum component
-along the path direction. Peer-reviewed impact modeling with normal COR
-plus tangential compliance reproduces the 75--85\% face dominance from
-first principles~\cite{mdpifriction,facepathstudy}.
+
+\begin{warning}
+The values above are the \emph{horizontal} weights measured by
+Wood~et~al.~\cite{facepathstudy} across 157 golfers and 1{,}575 shots at
+720\,fps, filtered to strikes within 0.25\,in of face centre; a PING~Man
+robot test returned $0.63$ for the 7-iron.
+
+The familiar $0.85/0.15$ figure comes from TrackMan's \emph{Ten
+Fundamentals}, which asserts $85\%$ in \emph{both} planes---$85\%$ dynamic
+loft to launch angle, and $85\%$ face angle to initial direction. Against
+Wood's measurements the two claims fare differently: the vertical claim
+holds ($0.83 \pm 0.08$), the horizontal one does not ($0.76 \pm 0.08$).
+This is a live vendor-versus-measurement disagreement, not a rounding
+difference or a units error.
+
+For OpenFlight this matters directly: inverting
+Eq.~\eqref{eq:launchweight} to recover face angle amplifies any bias in
+measured launch direction by $1/w_f$. At $w_f = 0.76$ that is $1.32$, not
+the $1.15$ implied by $0.85$---roughly twice the error sensitivity.
+\end{warning}
+
+The weight is loft-dependent: more loft means a more oblique
+impact, hence a larger tangential momentum component along the path
+direction. Peer-reviewed impact modeling with normal COR plus tangential
+compliance reproduces the loft dependence from first
+principles~\cite{mdpifriction,facepathstudy}.
+
+The \emph{mechanism} is contested. TrackMan attributes the driver's higher
+weight to a smoother, lower-friction titanium face; PING rejects this,
+showing the loft dependence persists at constant $\mu$ and that below
+$\sim20\degs$ of incidence \emph{lower} friction moves launch \emph{closer}
+to the path---the opposite of the friction hypothesis~\cite{mdpifriction}.
+An implementation that fits $w_f$ empirically should record which
+explanation its calibration assumes.
 
 Tutelman~\cite{tutelman3d} gives a closed-form version calibrated to
 TrackMan data. With face-to-path angle $A$ and dynamic loft $L$, define the

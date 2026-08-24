@@ -1,25 +1,82 @@
-# OS cruft
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# uv
+.uv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
 .DS_Store
 Thumbs.db
 desktop.ini
 
-# Editors
-.vscode/
-.idea/
+# Project specific
+shots/
+logs/
+credentials.env
+*.env
+!*.env.example
 
-# Python scratch
-__pycache__/
-*.pyc
-.venv/
+# Local capture and analysis artifacts. Historical fixtures under
+# session_logs remain tracked; new logs can still be added with git add -f.
+session_logs/session_*.jsonl
+session_logs/*.csv
+session_logs/*.md
+session_logs/*.pkl
+session_logs/*.zip
+session_logs/*/
 
-# Session data too large for git (keep summaries, not raw dumps)
-*.l3dump
-session_*.jsonl
-*.pkl
+# Test artifacts
+test_camera.jpg
+.pytest_cache/
+.pytest_temp/
+.coverage
+htmlcov/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# UI (Node.js)
+ui/node_modules/
+ui/dist/autoresearch-results.tsv
+
+# Simulator connector config (copy from config/sim.example.json)
+config/sim.json
+ui/playwright-report/
+ui/test-results/
+
+.superpowers/
 
 # Local-only scratch
 scratch/
-
-# The technology review moved to vendor/affinedrift/ (a git submodule); its
-# LaTeX build artifacts are AffineDrift's .gitignore concern now, not this
-# repo's.

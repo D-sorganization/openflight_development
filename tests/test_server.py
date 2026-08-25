@@ -3113,3 +3113,233 @@ class TestKld7AngleLimitConstant:
             _DEFAULT_KLD7_RADC_TUNING["radc_horizontal_angle_limit_deg"]
             == DEFAULT_RADC_HORIZONTAL_ANGLE_LIMIT_DEG
         )
+
+
+class TestAppState:
+    """Tests for the AppState runtime encapsulation container."""
+
+    def test_default_app_state(self):
+        from openflight.server import AppState
+
+        state = AppState()
+        assert state.monitor is None
+        assert state.power_monitor is None
+        assert state.battery_provider is None
+        assert state.kld7_vertical is None
+        assert state.kld7_horizontal is None
+        assert state.iwr6843_runtime is None
+        assert state.inclinometer_service is None
+        assert state.camera is None
+        assert state.camera_tracker is None
+        assert state.sim_connectors == []
+        assert state.current_player_name == "Player 1"
+        assert state.sim_player_state is not None
+        assert state.mock_mode is False
+        assert state.debug_mode is False
+        assert state.mock_swing_speed_mode is False
+        assert state.ballistics_enabled is True
+        assert state.ball_speed_correction_enabled is True
+        assert state.ball_speed_correction_distance_ft == 1.0
+        assert state.ball_speed_correction_ball_above_radar_ft == 0.0
+        assert state.radar_gate_bypass is False
+        assert state.calculated_spin_enabled is False
+        assert state.experimental_kld7_radc_tuning is False
+        assert state.experimental_kld7_raw_radc_logging is False
+        assert state.camera_enabled is False
+        assert state.camera_streaming is False
+        assert state.shutdown_cleanup_started is False
+
+    def test_custom_app_state(self):
+        from openflight.server import AppState
+
+        state = AppState(
+            current_player_name="Tiger",
+            mock_mode=True,
+            debug_mode=True,
+            ballistics_enabled=False,
+        )
+        assert state.current_player_name == "Tiger"
+        assert state.mock_mode is True
+        assert state.debug_mode is True
+        assert state.ballistics_enabled is False
+
+
+class TestProcessKld7Orientation:
+    """Tests for _process_kld7_orientation helper."""
+
+    def test_none_tracker_returns_early(self):
+        from openflight.server import _process_kld7_orientation
+
+        shot = Shot(
+            ball_speed_mph=100.0,
+            club_speed_mph=70.0,
+            timestamp=datetime.now(),
+            club=ClubType.IRON_7,
+        )
+        # Calling with tracker=None should be a no-op
+        _process_kld7_orientation(None, "vertical", shot, 100.0)
+        assert shot.launch_angle_vertical is None
+
+    def test_vertical_orientation_accepted(self):
+        from openflight.server import _process_kld7_orientation
+
+        reset_called = False
+
+        class StubTracker:
+            def snapshot_buffer(self, include_radc_payload=False):
+                return [{"timestamp": 100.1, "has_radc": True}]
+
+            def get_angle_for_shot(self, **kwargs):
+                return KLD7Angle(vertical_deg=18.5, confidence=0.85, num_frames=12)
+
+            def get_club_angle(self, **kwargs):
+                # Returns vertical_deg=4.0 -> candidate AoA = -4.0 (descending iron)
+                return KLD7Angle(vertical_deg=4.0, confidence=0.8)
+
+            def reset(self):
+                nonlocal reset_called
+                reset_called = True
+
+        logged_buffers = []
+
+        class StubSessionLogger:
+            @property
+            def stats(self):
+                return {"shots_detected": 1}
+
+            def log_kld7_buffer(self, **kwargs):
+                logged_buffers.append(kwargs)
+
+        shot = Shot(
+            ball_speed_mph=110.0,
+            club_speed_mph=85.0,
+            timestamp=datetime.now(),
+            club=ClubType.IRON_7,
+        )
+
+        tracker = StubTracker()
+        session_log = StubSessionLogger()
+        _process_kld7_orientation(tracker, "vertical", shot, 100.0, session_log=session_log)
+
+        assert shot.launch_angle_vertical == pytest.approx(18.5)
+        assert shot.launch_angle_confidence == pytest.approx(0.85)
+        assert shot.launch_angle_vertical_source == "radar"
+        assert shot.angle_source == "radar"
+        assert shot.club_angle_deg == pytest.approx(-4.0)
+        assert reset_called is True
+        assert len(logged_buffers) == 1
+        assert logged_buffers[0]["orientation"] == "vertical"
+
+    def test_vertical_orientation_rejected(self):
+        from openflight.server import _process_kld7_orientation
+
+        reset_called = False
+
+        class StubTracker:
+            def snapshot_buffer(self, include_radc_payload=False):
+                return []
+
+            def get_angle_for_shot(self, **kwargs):
+                # Extremely low confidence is rejected
+                return KLD7Angle(vertical_deg=18.5, confidence=0.1, num_frames=1)
+
+            def get_club_angle(self, **kwargs):
+                return None
+
+            def reset(self):
+                nonlocal reset_called
+                reset_called = True
+
+        shot = Shot(
+            ball_speed_mph=110.0,
+            club_speed_mph=85.0,
+            timestamp=datetime.now(),
+            club=ClubType.IRON_7,
+        )
+
+        tracker = StubTracker()
+        _process_kld7_orientation(tracker, "vertical", shot, 100.0)
+
+        assert shot.launch_angle_vertical is None
+        assert reset_called is True
+
+    def test_horizontal_orientation_accepted(self):
+        from openflight.server import _process_kld7_orientation
+
+        reset_called = False
+
+        class StubTracker:
+            def snapshot_buffer(self, include_radc_payload=False):
+                return [{"timestamp": 100.1, "has_radc": True}]
+
+            def get_angle_for_shot(self, **kwargs):
+                return KLD7Angle(horizontal_deg=2.5, confidence=0.75, num_frames=8)
+
+            def get_club_angle(self, **kwargs):
+                return KLD7Angle(horizontal_deg=-1.5, confidence=0.7)
+
+            def reset(self):
+                nonlocal reset_called
+                reset_called = True
+
+        logged_buffers = []
+
+        class StubSessionLogger:
+            @property
+            def stats(self):
+                return {"shots_detected": 1}
+
+            def log_kld7_buffer(self, **kwargs):
+                logged_buffers.append(kwargs)
+
+        shot = Shot(
+            ball_speed_mph=110.0,
+            club_speed_mph=85.0,
+            timestamp=datetime.now(),
+            club=ClubType.IRON_7,
+        )
+
+        tracker = StubTracker()
+        session_log = StubSessionLogger()
+        _process_kld7_orientation(tracker, "horizontal", shot, 100.0, session_log=session_log)
+
+        assert shot.launch_angle_horizontal == pytest.approx(2.5)
+        assert shot.launch_angle_horizontal_confidence == pytest.approx(0.75)
+        assert shot.launch_angle_horizontal_source == "radar"
+        assert shot.club_path_deg == pytest.approx(-1.5)
+        assert reset_called is True
+        assert len(logged_buffers) == 1
+        assert logged_buffers[0]["orientation"] == "horizontal"
+
+    def test_horizontal_orientation_rejected(self):
+        from openflight.server import _process_kld7_orientation
+
+        reset_called = False
+
+        class StubTracker:
+            def snapshot_buffer(self, include_radc_payload=False):
+                return []
+
+            def get_angle_for_shot(self, **kwargs):
+                # Outside horizontal limit (+-15 deg)
+                return KLD7Angle(horizontal_deg=28.0, confidence=0.9, num_frames=10)
+
+            def get_club_angle(self, **kwargs):
+                return None
+
+            def reset(self):
+                nonlocal reset_called
+                reset_called = True
+
+        shot = Shot(
+            ball_speed_mph=110.0,
+            club_speed_mph=85.0,
+            timestamp=datetime.now(),
+            club=ClubType.IRON_7,
+        )
+
+        tracker = StubTracker()
+        _process_kld7_orientation(tracker, "horizontal", shot, 100.0)
+
+        assert shot.launch_angle_horizontal is None
+        assert reset_called is True

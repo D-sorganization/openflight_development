@@ -92,6 +92,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   trusting it.
 
 ### Changed
+- **`server.py` architectural refactoring and AppState**: Extracted `_process_kld7_orientation()` to deduplicate vertical/horizontal K-LD7 shot buffer processing, defined `AppState` dataclass to encapsulate server runtime state, and published upstream design proposal for staged shot pipeline and dead camera retirement ([#20](https://github.com/D-sorganization/openflight_development/issues/20)).
 - The vertical estimator is now a fixed cascade (two_ray → geometry →
   single-frame geometry → naive); it is no longer user-selectable. Launch-angle
   source and confidence semantics changed accordingly.

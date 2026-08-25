@@ -14,9 +14,7 @@ _script_path = (
     / "analysis"
     / "evaluate_iwr6843_significance.py"
 )
-_spec = importlib.util.spec_from_file_location(
-    "evaluate_iwr6843_significance", _script_path
-)
+_spec = importlib.util.spec_from_file_location("evaluate_iwr6843_significance", _script_path)
 if _spec is None or _spec.loader is None:
     raise ImportError(f"Could not load module from {_script_path}")
 evaluate_iwr6843_significance = importlib.util.module_from_spec(_spec)
@@ -28,9 +26,7 @@ AngleSourceSplit = evaluate_iwr6843_significance.AngleSourceSplit
 ClubAccuracyMetric = evaluate_iwr6843_significance.ClubAccuracyMetric
 RadarComparisonReport = evaluate_iwr6843_significance.RadarComparisonReport
 RadarTechSpecs = evaluate_iwr6843_significance.RadarTechSpecs
-draft_discussion_161_response = (
-    evaluate_iwr6843_significance.draft_discussion_161_response
-)
+draft_discussion_161_response = evaluate_iwr6843_significance.draft_discussion_161_response
 format_markdown_report = evaluate_iwr6843_significance.format_markdown_report
 generate_comparison_report = evaluate_iwr6843_significance.generate_comparison_report
 get_iwr6843_accuracy = evaluate_iwr6843_significance.get_iwr6843_accuracy
@@ -81,9 +77,7 @@ class TestAccuracyBenchmarks:
         assert sw.coverage_pct > 85.0
 
         d_gated = next(
-            c
-            for c in iwr_acc.per_club_breakdown
-            if c.club_name == "Driver (Speed-Gated)"
+            c for c in iwr_acc.per_club_breakdown if c.club_name == "Driver (Speed-Gated)"
         )
         assert d_gated.mae_deg == 1.42
         assert d_gated.mae_deg < iwr_acc.driver_launch_angle_mae_deg
@@ -92,9 +86,7 @@ class TestAccuracyBenchmarks:
         iwr_acc = get_iwr6843_accuracy()
         assert len(iwr_acc.angle_source_splits) >= 4
 
-        strict = next(
-            s for s in iwr_acc.angle_source_splits if "Strict LCMF-v1" in s.mode_name
-        )
+        strict = next(s for s in iwr_acc.angle_source_splits if "Strict LCMF-v1" in s.mode_name)
         assert strict.coverage_pct >= 85.0
         assert strict.mae_deg <= 0.85
         assert "3 dots" in strict.ui_indicator

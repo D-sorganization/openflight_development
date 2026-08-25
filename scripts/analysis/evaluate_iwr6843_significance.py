@@ -388,9 +388,7 @@ def generate_comparison_report() -> RadarComparisonReport:
     kld7_a = get_kld7_accuracy()
     iwr_a = get_iwr6843_accuracy()
 
-    iron_improvement = (
-        kld7_a.iron_launch_angle_mae_deg / iwr_a.iron_launch_angle_mae_deg
-    )
+    iron_improvement = kld7_a.iron_launch_angle_mae_deg / iwr_a.iron_launch_angle_mae_deg
     driver_improvement = kld7_a.driver_launch_angle_mae_deg / iwr_a.driver_gated_mae_deg
 
     findings = [

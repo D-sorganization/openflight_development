@@ -6,10 +6,7 @@ const HOST = '127.0.0.1';
 const BASE_URL = `http://${HOST}:${PORT}`;
 const CONFIG_DIR = fileURLToPath(new URL('.', import.meta.url));
 const BACKEND_ARGS = `--mock --host ${HOST} --web-port 8080 --no-camera --no-logging`;
-const BACKEND_COMMAND =
-  process.env.CI
-    ? `python -m openflight.server ${BACKEND_ARGS}`
-    : `uv run openflight-server ${BACKEND_ARGS}`;
+const BACKEND_COMMAND = `uv run python -m openflight.server ${BACKEND_ARGS}`;
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -29,6 +26,9 @@ export default defineConfig({
       url: `http://${HOST}:8080`,
       reuseExistingServer: !process.env.CI,
       cwd: fileURLToPath(new URL('..', import.meta.url)),
+      env: {
+        PYTHONPATH: 'src',
+      },
     },
     {
       command: `npm run dev -- --host ${HOST} --port ${PORT} --mode test`,

@@ -1220,7 +1220,7 @@ dev = [
     { name = "pre-commit", specifier = ">=4.0.0" },
     { name = "pylint", specifier = ">=3.3.9" },
     { name = "pytest", specifier = ">=9.0.3" },
-    { name = "ruff", specifier = ">=0.1.0" },
+    { name = "ruff", specifier = ">=0.16.1" },
 ]
 
 [[package]]

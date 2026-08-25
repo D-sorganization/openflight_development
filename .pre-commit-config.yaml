@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.9.10
+    rev: v0.16.1
     hooks:
       - id: ruff
         args: [--fix]
@@ -17,7 +17,7 @@ repos:
 
       - id: eslint
         name: eslint
-        entry: npm run lint
+        entry: npm run --prefix ui lint
         language: system
         files: ^ui/src/.*\.(ts|tsx)$
         pass_filenames: false

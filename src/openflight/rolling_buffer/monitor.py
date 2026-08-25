@@ -12,7 +12,8 @@ import time
 from datetime import datetime
 from typing import Callable, List, Optional
 
-from ..launch_monitor import ClubType, Shot, estimate_carry_distance
+from ..club_data import ClubType, get_optimal_smash, get_spin_multiplier
+from ..launch_monitor import Shot, estimate_carry_distance
 from ..ops243 import OPS243Radar, SpeedReading
 from ..session_logger import get_session_logger, log_session_error
 from .processor import RollingBufferProcessor
@@ -63,31 +64,7 @@ def get_optimal_spin_for_ball_speed(
             break
 
     # Adjust for club type - irons need more spin
-    club_spin_multipliers = {
-        ClubType.DRIVER: 1.0,
-        ClubType.WOOD_3: 1.15,
-        ClubType.WOOD_5: 1.25,
-        ClubType.WOOD_7: 1.32,
-        ClubType.HYBRID_3: 1.45,
-        ClubType.HYBRID_5: 1.55,
-        ClubType.HYBRID_7: 1.65,
-        ClubType.HYBRID_9: 1.75,
-        ClubType.IRON_2: 1.5,
-        ClubType.IRON_3: 1.6,
-        ClubType.IRON_4: 1.8,
-        ClubType.IRON_5: 2.0,
-        ClubType.IRON_6: 2.2,
-        ClubType.IRON_7: 2.5,
-        ClubType.IRON_8: 2.8,
-        ClubType.IRON_9: 3.2,
-        ClubType.PW: 3.6,
-        ClubType.GW: 4.1,
-        ClubType.SW: 4.3,
-        ClubType.LW: 4.6,
-        ClubType.UNKNOWN: 1.0,
-    }
-
-    multiplier = club_spin_multipliers.get(club, 1.0)
+    multiplier = get_spin_multiplier(club)
     return optimal * multiplier
 
 
@@ -163,31 +140,7 @@ def estimate_carry_with_spin(
         smash = ball_speed_mph / club_speed_mph
 
         # Optimal smash factors by club type
-        optimal_smash = {
-            ClubType.DRIVER: 1.48,
-            ClubType.WOOD_3: 1.44,
-            ClubType.WOOD_5: 1.42,
-            ClubType.WOOD_7: 1.41,
-            ClubType.HYBRID_3: 1.39,
-            ClubType.HYBRID_5: 1.37,
-            ClubType.HYBRID_7: 1.35,
-            ClubType.HYBRID_9: 1.33,
-            ClubType.IRON_2: 1.36,
-            ClubType.IRON_3: 1.35,
-            ClubType.IRON_4: 1.33,
-            ClubType.IRON_5: 1.31,
-            ClubType.IRON_6: 1.29,
-            ClubType.IRON_7: 1.27,
-            ClubType.IRON_8: 1.25,
-            ClubType.IRON_9: 1.23,
-            ClubType.PW: 1.21,
-            ClubType.GW: 1.19,
-            ClubType.SW: 1.18,
-            ClubType.LW: 1.17,
-            ClubType.UNKNOWN: 1.35,
-        }
-
-        target_smash = optimal_smash.get(club, 1.35)
+        target_smash = get_optimal_smash(club)
         smash_delta = target_smash - smash
 
         if smash_delta > 0:

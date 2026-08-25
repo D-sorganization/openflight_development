@@ -375,6 +375,57 @@ def load_trackman(path: Path) -> List[Shot]:
     return shots
 
 
+def load_reference(path: Path, source: str = "trackman") -> List[Shot]:
+    """Load reference shots from Trackman or MLM2 Pro CSV export."""
+    if source == "mlm2pro":
+        try:
+            from mlm2pro_adapter import load_mlm2pro
+        except ImportError:
+            from .mlm2pro_adapter import load_mlm2pro  # type: ignore
+
+        mlm_shots = load_mlm2pro(path)
+        return [
+            Shot(
+                source="tm",
+                shot_number=s.shot_number,
+                timestamp=s.timestamp,
+                club=normalize_club(s.club),
+                ball_speed_mph=s.ball_speed_mph,
+                club_speed_mph=s.club_speed_mph,
+                smash_factor=s.smash_factor,
+                launch_angle_vertical=s.launch_angle_vertical,
+                launch_angle_horizontal=s.launch_angle_horizontal,
+                spin_rpm=s.spin_rpm,
+                carry_yards=s.carry_yards,
+                raw=s.raw,
+            )
+            for s in mlm_shots
+        ]
+    return load_trackman(path)
+
+
+def convert_mlm2pro_csv_to_trackman(
+    input_path: Path | str,
+    output_path: Path | str,
+    speed_unit: str = "auto",
+    distance_unit: str = "auto",
+    default_club: Optional[str] = None,
+) -> None:
+    """Helper proxy to mlm2pro_adapter.convert_mlm2pro_csv_to_trackman."""
+    try:
+        from mlm2pro_adapter import convert_mlm2pro_csv_to_trackman as _convert
+    except ImportError:
+        from .mlm2pro_adapter import convert_mlm2pro_csv_to_trackman as _convert  # type: ignore
+
+    _convert(
+        input_path,
+        output_path,
+        speed_unit=speed_unit,
+        distance_unit=distance_unit,
+        default_club=default_club,
+    )
+
+
 # ---------------------------------------------------------------------------
 # Pairing
 # ---------------------------------------------------------------------------
@@ -921,8 +972,16 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser.add_argument(
         "--openflight", required=True, type=Path, help="OpenFlight session JSONL file"
     )
-    parser.add_argument("--trackman", required=True, type=Path, help="Trackman CSV export")
+    parser.add_argument(
+        "--trackman", required=True, type=Path, help="Trackman / reference CSV export"
+    )
     parser.add_argument("--output", required=True, type=Path, help="Output comparison CSV")
+    parser.add_argument(
+        "--source",
+        choices=["trackman", "mlm2pro"],
+        default="trackman",
+        help="Reference CSV format: 'trackman' (default) or 'mlm2pro'",
+    )
     parser.add_argument(
         "--ball-speed-tol",
         type=float,
@@ -945,7 +1004,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         return 2
 
     of_shots = load_openflight(args.openflight)
-    tm_shots = load_trackman(args.trackman)
+    tm_shots = load_reference(args.trackman, source=args.source)
     print(f"Loaded {len(of_shots)} OpenFlight shots, {len(tm_shots)} Trackman shots")
 
     club_filter = (

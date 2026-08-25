@@ -79,10 +79,47 @@ Select the matching club in the OpenFlight UI per block (drives fallbacks and sp
 
 ## Analysis
 
-Upstream already ships `scripts/analysis/compare_trackman.py` (per-club bias + row-level deltas for ball speed, club speed, smash, vertical/horizontal launch, spin, carry, plus OpenFlight spin diagnostics columns). Two options:
+Upstream already ships `scripts/analysis/compare_trackman.py` (per-club bias + row-level deltas for ball speed, club speed, smash, vertical/horizontal launch, spin, carry, plus OpenFlight spin diagnostics columns).
 
-1. **Adapter script** that reshapes an MLM2 Pro CSV export into the TrackMan CSV column layout `compare_trackman.py` expects → zero upstream changes, works today. Start here, in this repo.
-2. **Upstream contribution:** `--source mlm2pro` (or a generic `--source` column-mapping) for `compare_trackman.py` + a `docs/mlm2pro-test-process.md`. Do this after the adapter is proven on 2–3 real sessions.
+### Running the MLM2 Pro Adapter
+
+We provide `scripts/analysis/mlm2pro_adapter.py` to convert raw Rapsodo MLM2 Pro exports (from R-Cloud or mobile app) into the standard TrackMan CSV layout.
+
+#### Option 1: Standalone Adapter Conversion
+
+Convert the exported CSV to TrackMan layout, then run `compare_trackman.py`:
+
+```bash
+# 1. Convert MLM2 Pro CSV export to TrackMan CSV format
+uv run python scripts/analysis/mlm2pro_adapter.py \
+    --input ~/Downloads/mlm2pro_session_20260730.csv \
+    --output ~/openflight_sessions/mlm2pro_trackman_20260730.csv
+
+# 2. Compare OpenFlight session log against the converted reference
+uv run python scripts/analysis/compare_trackman.py \
+    --openflight ~/openflight_sessions/session_20260730_*.jsonl \
+    --trackman ~/openflight_sessions/mlm2pro_trackman_20260730.csv \
+    --output ~/openflight_sessions/comparison_20260730.csv
+```
+
+#### Option 2: Direct `--source mlm2pro` in `compare_trackman.py`
+
+Alternatively, pass the raw MLM2 Pro CSV directly using `--source mlm2pro`:
+
+```bash
+uv run python scripts/analysis/compare_trackman.py \
+    --openflight ~/openflight_sessions/session_20260730_*.jsonl \
+    --trackman ~/Downloads/mlm2pro_session_20260730.csv \
+    --source mlm2pro \
+    --output ~/openflight_sessions/comparison_20260730.csv
+```
+
+### Adapter Features & Column Mapping
+
+- **Column Aliases:** Resolves variations in MLM2 Pro exports (`Shot Number` / `Shot #`, `DateTime` / `Date` + `Time`, `Club Type` / `Club`, `Ball Speed`, `Club Speed`, `Launch Angle`, `Launch Direction` / `Side Angle`, `Total Spin` / `Spin Rate`, `Spin Axis` / `Tilt Angle`, `Carry Distance`, `Apex`, `Smash Factor`).
+- **Unit Conversions:** Automatically detects and converts speeds (`m/s` or `km/h` -> `mph`) and distances (`meters` -> `yards`, apex `meters` -> `feet`). Explicit overrides can be provided via `--speed-unit` and `--distance-unit`.
+- **Directional Formats:** Parses L/R angle notations (e.g. `2.5 R` -> `+2.5`, `1.8 L` -> `-1.8`, `Straight` -> `0.0`).
+- **Robust Ingestion:** Strips UTF-8 BOMs and Excel `sep=,` preambles; skips metadata headers and summary rows (`Average`, `Std Dev`, `Total`); falls back gracefully on missing / unmeasured metrics.
 
 **Per session, report (mirroring upstream's post-session checklist):**
 

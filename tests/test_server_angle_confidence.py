@@ -174,13 +174,17 @@ def test_no_hardcoded_095_for_either_angle():
     not) makes `loose < tight` fail, since a real function of the spread is
     required to produce different outputs for different inputs.
     """
-    source = Path("src/openflight/server.py").read_text(encoding="utf-8")
-    offenders = [
-        line.strip()
-        for line in source.splitlines()
-        if re.search(
-            r"launch_angle_(?:vertical|horizontal)_confidence\s*=\s*-?\d+(?:\.\d+)?\s*(?:#.*)?$",
-            line,
-        )
-    ]
+    server_dir = Path("src/openflight/server")
+    source_files = (
+        list(server_dir.glob("*.py")) if server_dir.is_dir() else [Path("src/openflight/server.py")]
+    )
+    offenders = []
+    for file_path in source_files:
+        source = file_path.read_text(encoding="utf-8")
+        for line in source.splitlines():
+            if re.search(
+                r"launch_angle_(?:vertical|horizontal)_confidence\s*=\s*-?\d+(?:\.\d+)?\s*(?:#.*)?$",
+                line,
+            ):
+                offenders.append(f"{file_path.name}: {line.strip()}")
     assert offenders == [], f"hardcoded confidence literal returned: {offenders}"

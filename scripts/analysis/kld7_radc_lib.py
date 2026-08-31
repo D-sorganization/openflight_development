@@ -245,7 +245,7 @@ def analyze_capture(
     direct timestamp matching unreliable.
 
     Args:
-        data: Dict from pickle.load() with keys: frames, ops243_shots (optional)
+        data: Dict from load_capture() with keys: frames, ops243_shots (optional)
         angle_offset_deg: Angle offset to apply
         speed_tolerance_mph: Velocity search window ± around OPS243 speed
 

@@ -8,22 +8,28 @@
 
 import argparse
 import os
-import pickle
+import sys
+from pathlib import Path
 
 # matplotlib backend set after arg parsing (Agg for headless, TkAgg for interactive)
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+SRC_ROOT = PROJECT_ROOT / "src"
+if str(SRC_ROOT) not in sys.path:
+    sys.path.insert(0, str(SRC_ROOT))
 
-def load_data(file_path):
+from openflight.capture_io import load_capture  # noqa: E402
+
+
+def load_data(file_path: str | Path, *, allow_legacy_pickle: bool = False) -> dict | None:
     try:
-        with open(file_path, "rb") as file:
-            data = pickle.load(file)
-            return data
-
+        return load_capture(file_path, allow_legacy_pickle=allow_legacy_pickle)
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"Error loading capture: {e}")
+        return None
 
 
 def time_domain_plot(sig, t_s, title_suffix="", save_path=None):
@@ -53,8 +59,8 @@ def time_domain_plot(sig, t_s, title_suffix="", save_path=None):
         plt.close(fig)
 
 
-def analyze(fname, capture_idx=None, save_dir=None):
-    data = load_data(fname)
+def analyze(fname, capture_idx=None, save_dir=None, allow_legacy_pickle: bool = False):
+    data = load_data(fname, allow_legacy_pickle=allow_legacy_pickle)
     if data is None:
         return
 
@@ -327,6 +333,11 @@ if __name__ == "__main__":
         default=None,
         help="Directory for saved plots (default: <input_file>_plots/)",
     )
+    parser.add_argument(
+        "--allow-legacy-pickle",
+        action="store_true",
+        help="Allow loading legacy .pkl capture files",
+    )
     args = parser.parse_args()
 
     # Set matplotlib backend before any plotting
@@ -360,18 +371,25 @@ if __name__ == "__main__":
                 os.makedirs(save_dir, exist_ok=True)
                 print(f"  Saving plots to: {save_dir}")
 
-            analyze(fpath, capture_idx=args.capture, save_dir=save_dir)
+            analyze(
+                fpath,
+                capture_idx=args.capture,
+                save_dir=save_dir,
+                allow_legacy_pickle=args.allow_legacy_pickle,
+            )
     else:
         # Default: analyze standard datasets
         data_dir = args.data_dir
-        dataset_h1 = "iq_captures_club_swinging.pkl"
-        dataset_h0 = "iq_captures_noise.pkl"
+        dataset_h1 = "iq_captures_club_swinging.json"
+        dataset_h0 = "iq_captures_noise.json"
 
         for dataset in [dataset_h0, dataset_h1]:
             fpath = os.path.join(data_dir, dataset)
             if os.path.exists(fpath):
                 print(f"Analyzing: {fpath}")
-                analyze(fpath, capture_idx=args.capture)
+                analyze(
+                    fpath, capture_idx=args.capture, allow_legacy_pickle=args.allow_legacy_pickle
+                )
             else:
                 print(f"Skipping (not found): {fpath}")
 

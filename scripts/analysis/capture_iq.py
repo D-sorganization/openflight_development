@@ -20,15 +20,18 @@ To analyze afterwards:
 """
 
 import argparse
-import pickle
 import sys
 from datetime import datetime
 from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+SRC_ROOT = PROJECT_ROOT / "src"
+if str(SRC_ROOT) not in sys.path:
+    sys.path.insert(0, str(SRC_ROOT))
 
+from openflight.capture_io import save_capture
 from openflight.ops243 import OPS243Radar
 from openflight.rolling_buffer.processor import RollingBufferProcessor
 
@@ -133,7 +136,7 @@ Examples:
         output_dir = Path.home() / "openflight_sessions"
         output_dir.mkdir(exist_ok=True)
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        output_path = output_dir / f"capture_{timestamp}.pkl"
+        output_path = output_dir / f"capture_{timestamp}.json"
 
     sample_rate_hz = args.sample_rate * 1000
     segment_ms = 128 / sample_rate_hz * 1000
@@ -306,8 +309,7 @@ Examples:
                 "captures": captures,
             }
 
-            with open(output_path, "wb") as f:
-                pickle.dump(output_data, f)
+            save_capture(output_path, output_data)
 
             print(f"  Output file:     {output_path}")
             print(f"  File size:       {output_path.stat().st_size / 1024:.1f} KB")

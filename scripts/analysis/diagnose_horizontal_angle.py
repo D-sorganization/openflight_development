@@ -37,6 +37,7 @@ from __future__ import annotations
 import argparse
 import json
 import statistics as stats
+import sys
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
@@ -566,12 +567,15 @@ def _import_radc():
     return radc
 
 
-def load_radc_capture(path: Path) -> dict:
-    """Load a kld7_radc_*.pkl capture (output of capture_kld7_radc.py)."""
-    import pickle
+def load_radc_capture(path: Path, *, allow_legacy_pickle: bool = True) -> dict:
+    """Load a kld7_radc_* capture (.json, .json.gz, or legacy .pkl)."""
+    project_root = Path(__file__).resolve().parents[2]
+    src = project_root / "src"
+    if str(src) not in sys.path:
+        sys.path.insert(0, str(src))
+    from openflight.capture_io import load_capture
 
-    with path.open("rb") as fh:
-        return pickle.load(fh)
+    return load_capture(path, allow_legacy_pickle=allow_legacy_pickle)
 
 
 def group_frames_around_shots(

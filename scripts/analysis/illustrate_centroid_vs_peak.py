@@ -26,7 +26,6 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import pickle
 import sys
 from pathlib import Path
 
@@ -112,8 +111,10 @@ def _load_groups(pkl_path: Path) -> list[dict]:
     """Load capture and group frames around each OPS243 shot — mirrors
     `group_frames_around_shots` in `diagnose_horizontal_angle.py`.
     """
-    with pkl_path.open("rb") as f:
-        capture = pickle.load(f)
+    sys.path.insert(0, str(REPO_ROOT / "src"))
+    from openflight.capture_io import load_capture
+
+    capture = load_capture(pkl_path, allow_legacy_pickle=True)
     shots = capture.get("ops243_shots") or []
     frames = capture.get("frames") or []
     ms_before, ms_after = 1500.0, 700.0

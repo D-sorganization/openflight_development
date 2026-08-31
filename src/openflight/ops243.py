@@ -1044,7 +1044,7 @@ class OPS243Radar:
         """
         # Always log raw line when debugging enabled (before any parsing)
         if _show_raw_readings:
-            print(f"[SERIAL] {line!r}")
+            logger.debug("[SERIAL] %r", line)
 
         try:
             if self._json_mode and line.startswith("{"):
@@ -1061,8 +1061,11 @@ class OPS243Radar:
                     magnitude = float(magnitude_data[0]) if magnitude_data else None
 
                     if _show_raw_readings:
-                        print(
-                            f"[MULTI] {len(speed_data)} objects: speeds={speed_data} mags={magnitude_data}"
+                        logger.debug(
+                            "[MULTI] %d objects: speeds=%s mags=%s",
+                            len(speed_data),
+                            speed_data,
+                            magnitude_data,
                         )
                 else:
                     speed = float(speed_data)
@@ -1078,7 +1081,9 @@ class OPS243Radar:
 
                 # Debug: print raw reading to console (sign indicates direction)
                 if _show_raw_readings:
-                    print(f"[RAW] {speed:+.1f} mph -> {direction.value} (mag: {magnitude})")
+                    logger.debug(
+                        "[RAW] %+.1f mph -> %s (mag: %s)", speed, direction.value, magnitude
+                    )
 
                 # Log parsed reading for debugging
                 logger.debug(
@@ -1106,7 +1111,7 @@ class OPS243Radar:
 
             # Debug: print raw reading to console
             if _show_raw_readings:
-                print(f"[RAW] {speed:+.1f} mph -> {direction.value}")
+                logger.debug("[RAW] %+.1f mph -> %s", speed, direction.value)
 
             logger.debug(
                 "[OPS] PARSED (plain): raw_speed=%.2f abs_speed=%.2f dir=%s",
@@ -1131,7 +1136,7 @@ class OPS243Radar:
         every candidate so it can choose the fastest club-head-like reflection.
         """
         if _show_raw_readings:
-            print(f"[SERIAL] {line!r}")
+            logger.debug("[SERIAL] %r", line)
 
         try:
             if self._json_mode and line.startswith("{"):
@@ -1210,11 +1215,10 @@ class OPS243Radar:
         if not self.serial or not self.serial.is_open:
             raise ConnectionError("Not connected to radar")
 
-        print(
-            f"[RADAR] Entering rolling buffer mode (S#{pre_trigger_segments}, S={sample_rate_ksps})..."
-        )
         logger.info(
-            "[OPS] Entering rolling buffer mode (pre_trigger_segments=%d)...", pre_trigger_segments
+            "[OPS] Entering rolling buffer mode (S#%d, S=%d)...",
+            pre_trigger_segments,
+            sample_rate_ksps,
         )
 
         # Clear any stale data
@@ -1261,9 +1265,6 @@ class OPS243Radar:
         # to ensure stable state before accepting triggers
         time.sleep(0.3)
 
-        print(
-            f"[RADAR] Rolling buffer mode ACTIVE (S#{pre_trigger_segments}, {sample_rate_ksps}ksps)"
-        )
         logger.info(
             "[OPS] Rolling buffer mode active (S#%d, %dksps)",
             pre_trigger_segments,
@@ -1319,8 +1320,6 @@ class OPS243Radar:
             "[OPS] Rolling buffer mode saved to persistent memory. "
             "Power cycle the board for changes to take effect."
         )
-        print("[RADAR] Settings saved to persistent memory.")
-        print("[RADAR] Power cycle the board (unplug USB, wait 3s, replug).")
 
     def restore_rolling_buffer_mode(
         self, pre_trigger_segments: int = 16, sample_rate_ksps: int = 30

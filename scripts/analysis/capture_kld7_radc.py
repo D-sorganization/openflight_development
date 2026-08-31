@@ -36,12 +36,18 @@ Output:
 from __future__ import annotations
 
 import argparse
-import pickle
 import sys
 import threading
 import time
 from datetime import datetime
 from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+SRC_ROOT = PROJECT_ROOT / "src"
+if str(SRC_ROOT) not in sys.path:
+    sys.path.insert(0, str(SRC_ROOT))
+
+from openflight.capture_io import save_capture  # noqa: E402
 
 try:
     from kld7 import KLD7, FrameCode, KLD7Exception
@@ -512,7 +518,7 @@ def main():
         output_dir.mkdir(exist_ok=True)
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         suffix = f"-{args.club}" if args.club else ""
-        output_path = output_dir / f"kld7_radc_{timestamp}{suffix}.pkl"
+        output_path = output_dir / f"kld7_radc_{timestamp}{suffix}.json"
 
     # Connect OPS243 if requested. --ops243-port implies --ops243.
     ops243 = None
@@ -763,8 +769,7 @@ def main():
         "ops243_shots": ops243_shots,
         "ops243_captures": ops243_captures,
     }
-    with open(output_path, "wb") as f:
-        pickle.dump(data, f)
+    save_capture(output_path, data)
 
     print(f"  Done ({output_path.stat().st_size / 1024:.0f} KB)")
     print("=" * 60)

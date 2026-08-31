@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import argparse
 import csv
-import pickle
 import sys
 from pathlib import Path
 
@@ -22,6 +21,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "src"))
 
 from kld7_radc_lib import (
     compare_radc_vs_pdat,
@@ -31,10 +31,7 @@ from kld7_radc_lib import (
     to_complex_iq,
 )
 
-
-def load_capture(path: Path) -> dict:
-    with open(path, "rb") as f:
-        return pickle.load(f)
+from openflight.capture_io import load_capture
 
 
 def find_active_windows(frames: list[dict], min_pdat_targets: int = 3, context_frames: int = 10):
@@ -222,9 +219,14 @@ def main():
     parser.add_argument("--fft-size", type=int, default=2048, help="FFT size (default: 2048)")
     parser.add_argument("--cfar-threshold", type=float, default=8.0, help="CFAR threshold factor")
     parser.add_argument("--output-dir", type=Path, default=None, help="Output directory for plots")
+    parser.add_argument(
+        "--allow-legacy-pickle",
+        action="store_true",
+        help="Allow loading legacy .pkl capture files",
+    )
     args = parser.parse_args()
 
-    data = load_capture(args.capture)
+    data = load_capture(args.capture, allow_legacy_pickle=args.allow_legacy_pickle)
     frames = data["frames"]
 
     output_dir = args.output_dir or args.capture.parent / f"radc_analysis_{args.capture.stem}"

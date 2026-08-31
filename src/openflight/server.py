@@ -1221,11 +1221,11 @@ def init_camera(
     global camera, camera_tracker, camera_enabled  # pylint: disable=global-statement
 
     if not CV2_AVAILABLE:
-        print("OpenCV not available - camera disabled")
+        logger.warning("OpenCV not available - camera disabled")
         return False
 
     if not PICAMERA_AVAILABLE:
-        print("picamera2 not available - camera disabled")
+        logger.warning("picamera2 not available - camera disabled")
         return False
 
     try:
@@ -1269,7 +1269,7 @@ def init_camera(
         return True
 
     except Exception as e:
-        print(f"Failed to initialize camera: {e}")
+        logger.error("Failed to initialize camera: %s", e)
         camera = None
         camera_tracker = None
         return False
@@ -1410,21 +1410,22 @@ def init_inclinometer(*, zero_offset_deg: float, bus_number: int = 1, address: i
                 "[SERVER] LIS3DH initialized but has no stable startup reading (%s)",
                 startup.status,
             )
-            print(f"Inclinometer enabled, waiting for a stable reading ({startup.status})")
+            logger.info("Inclinometer enabled, waiting for a stable reading (%s)", startup.status)
             return True
 
         snapshot = startup.snapshot
-        print(
-            "Inclinometer enabled "
-            f"(raw pitch {snapshot.raw_pitch_deg:+.2f}deg, "
-            f"calibrated {snapshot.calibrated_pitch_deg:+.2f}deg)"
+        logger.info(
+            "Inclinometer enabled (raw pitch %+.2fdeg, calibrated %+.2fdeg)",
+            snapshot.raw_pitch_deg,
+            snapshot.calibrated_pitch_deg,
         )
         if iwr6843_runtime is not None:
             configured_tilt = math.degrees(iwr6843_runtime.calibration.tilt_rad)
             effective_tilt = configured_tilt + snapshot.calibrated_pitch_deg
-            print(
-                f"IWR6843 tilt: configured {configured_tilt:.2f}deg, "
-                f"effective {effective_tilt:.2f}deg"
+            logger.info(
+                "IWR6843 tilt: configured %.2fdeg, effective %.2fdeg",
+                configured_tilt,
+                effective_tilt,
             )
         return True
     except Exception as error:  # pylint: disable=broad-exception-caught
@@ -1587,7 +1588,7 @@ def camera_processing_loop():
                     latest_frame = jpeg.tobytes()
 
         except Exception as e:
-            print(f"Camera processing error: {e}")
+            logger.error("Camera processing error: %s", e)
             time.sleep(0.1)
 
 
@@ -1601,7 +1602,7 @@ def start_camera_thread():
     camera_stop_event = threading.Event()
     camera_thread = threading.Thread(target=camera_processing_loop, daemon=True)
     camera_thread.start()
-    print("Camera processing thread started")
+    logger.info("Camera processing thread started")
 
 
 def stop_camera_thread():
@@ -1660,7 +1661,7 @@ def handle_toggle_camera():
             "streaming": camera_streaming,
         },
     )
-    print(f"Camera {'enabled' if camera_enabled else 'disabled'}")
+    logger.info("Camera %s", "enabled" if camera_enabled else "disabled")
 
 
 @socketio.on("toggle_camera_stream")
@@ -1689,7 +1690,7 @@ def handle_toggle_camera_stream():
             "streaming": camera_streaming,
         },
     )
-    print(f"Camera streaming {'started' if camera_streaming else 'stopped'}")
+    logger.info("Camera streaming %s", "started" if camera_streaming else "stopped")
 
 
 @socketio.on("get_camera_status")
@@ -1734,8 +1735,8 @@ def start_debug_logging():
     radar_raw_logger.addHandler(file_handler)
     radar_logger.addHandler(file_handler)
 
-    print(f"Debug logging to: {debug_log_path}")
-    print(f"Raw radar logging to: {raw_log_path}")
+    logger.info("Debug logging to: %s", debug_log_path)
+    logger.info("Raw radar logging to: %s", raw_log_path)
     return str(debug_log_path)
 
 
@@ -1746,7 +1747,7 @@ def stop_debug_logging():
     if debug_log_file:
         debug_log_file.close()
         debug_log_file = None
-        print(f"Debug log saved: {debug_log_path}")
+        logger.info("Debug log saved: %s", debug_log_path)
 
 
 def log_debug_reading(reading: SpeedReading):
@@ -1763,9 +1764,11 @@ def log_debug_reading(reading: SpeedReading):
         debug_log_file.write(json.dumps(entry) + "\n")
         debug_log_file.flush()
 
-        # Also print to console for immediate feedback
-        print(
-            f"[RADAR] {reading.speed:.1f} mph {reading.direction.value} (mag={reading.magnitude})"
+        logger.debug(
+            "[RADAR] %.1f mph %s (mag=%s)",
+            reading.speed,
+            reading.direction.value,
+            reading.magnitude,
         )
 
 
@@ -1918,7 +1921,7 @@ def start_power_monitor(provider: str) -> None:
 @socketio.on("connect")
 def handle_connect():
     """Handle client connection."""
-    print("Client connected")
+    logger.info("Client connected")
     _emit_sim_snapshot()
     if power_monitor and power_monitor.status:
         socketio.emit("power_status", power_monitor.status.to_dict())
@@ -1944,7 +1947,7 @@ def handle_connect():
 @socketio.on("disconnect")
 def handle_disconnect():
     """Handle client disconnection."""
-    print("Client disconnected")
+    logger.info("Client disconnected")
 
 
 @socketio.on("get_trigger_status")
@@ -2053,11 +2056,11 @@ def handle_toggle_debug():
     if debug_mode:
         log_path = start_debug_logging()
         socketio.emit("debug_toggled", {"enabled": True, "log_path": log_path})
-        print("Debug mode ENABLED")
+        logger.info("Debug mode ENABLED")
     else:
         stop_debug_logging()
         socketio.emit("debug_toggled", {"enabled": False})
-        print("Debug mode DISABLED")
+        logger.info("Debug mode DISABLED")
 
 
 @socketio.on("get_debug_status")
@@ -2113,7 +2116,7 @@ def handle_set_radar_config(data):
             if is_swing_speed:
                 monitor.trigger_threshold_mph = float(new_min)
             radar_config["min_speed"] = new_min
-            print(f"Set min speed filter: {new_min} mph")
+            logger.info("Set min speed filter: %d mph", new_min)
 
         # Update max speed filter. 0 must still be forwarded: AN-010-AD (p10)
         # defines "R<0 resets to no limit", so it is how the UI clears a
@@ -2125,14 +2128,14 @@ def handle_set_radar_config(data):
             if is_swing_speed:
                 monitor.max_speed_mph = None if new_max <= 0 else float(new_max)
             radar_config["max_speed"] = new_max
-            print(f"Set max speed filter: {new_max} mph")
+            logger.info("Set max speed filter: %d mph", new_max)
 
         # Update magnitude filter
         if "min_magnitude" in data:
             new_mag = int(data["min_magnitude"])
             monitor.radar.set_magnitude_filter(min_mag=new_mag)
             radar_config["min_magnitude"] = new_mag
-            print(f"Set min magnitude filter: {new_mag}")
+            logger.info("Set min magnitude filter: %d", new_mag)
 
         # Update transmit power (0=max, 7=min)
         if "transmit_power" in data:
@@ -2140,7 +2143,7 @@ def handle_set_radar_config(data):
             if 0 <= new_power <= 7:
                 monitor.radar.set_transmit_power(new_power)
                 radar_config["transmit_power"] = new_power
-                print(f"Set transmit power: {new_power}")
+                logger.info("Set transmit power: %d", new_power)
 
         # Log config change
         session_logger = get_session_logger()
@@ -2922,7 +2925,7 @@ def on_shot_detected(shot: Shot):
 
             socketio.emit("debug_shot", debug_log_entry)
         except Exception as e:
-            print(f"[WARN] Debug logging error: {e}")
+            logger.warning("[WARN] Debug logging error: %s", e)
 
 
 def swing_speed_to_dict(event: SwingSpeedEvent) -> dict:
@@ -3036,7 +3039,7 @@ def start_monitor(
 
     # Stop any existing monitor first
     if monitor is not None:
-        print("[MONITOR] Stopping existing monitor before starting new one")
+        logger.info("[MONITOR] Stopping existing monitor before starting new one")
         stop_monitor()
 
     mock_mode = mock
@@ -3044,7 +3047,7 @@ def start_monitor(
 
     if mock_swing_speed_mode:
         monitor = MockSwingSpeedMonitor(**(swing_speed_kwargs or {}))
-        print("[MODE] Mock swing speed training mode")
+        logger.info("[MODE] Mock swing speed training mode")
     elif mock:
         # Mock mode for testing without radar
         monitor = MockLaunchMonitor()
@@ -3055,7 +3058,7 @@ def start_monitor(
             port=port,
             **(swing_speed_kwargs or {}),
         )
-        print("[MODE] Swing speed training mode")
+        logger.info("[MODE] Swing speed training mode")
     else:
         from .rolling_buffer import RollingBufferMonitor
 
@@ -3066,9 +3069,10 @@ def start_monitor(
             ops_baud=ops_baud,
             **(trigger_kwargs or {}),
         )
-        print(
-            "[MODE] Rolling buffer mode "
-            f"(trigger: {trigger_type}, sample_rate: {sample_rate_ksps}ksps)"
+        logger.info(
+            "[MODE] Rolling buffer mode (trigger: %s, sample_rate: %dksps)",
+            trigger_type,
+            sample_rate_ksps,
         )
 
     monitor.connect()
@@ -3288,7 +3292,7 @@ class MockLaunchMonitor:
         """Start mock monitoring."""
         self._shot_callback = shot_callback
         self._running = True
-        print("Mock monitor started - simulate shots via WebSocket")
+        logger.info("Mock monitor started - simulate shots via WebSocket")
 
     def stop(self):
         """Stop mock monitoring."""
@@ -3439,7 +3443,7 @@ class MockSwingSpeedMonitor:
         """Start mock swing speed monitoring."""
         self._event_callback = event_callback
         self._running = True
-        print("Mock swing speed monitor started - simulate swings via WebSocket")
+        logger.info("Mock swing speed monitor started - simulate swings via WebSocket")
 
     def stop(self):
         """Stop mock monitoring."""
@@ -4005,6 +4009,12 @@ def main():
         default=DEFAULT_RADC_HORIZONTAL_ANGLE_LIMIT_DEG,
         help="Experimental horizontal K-LD7 RADC angle acceptance limit in degrees (default: 15.0)",
     )
+    parser.add_argument(
+        "--log-level",
+        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+        default="INFO",
+        help="Set logging verbosity level (default: INFO)",
+    )
     args = parser.parse_args()
 
     # Mount tilt cannot be defaulted safely (a wrong value silently biases the
@@ -4062,50 +4072,41 @@ def main():
     kld7_radc_tuning_kwargs = _kld7_radc_tuning_kwargs(args)
     active_kld7_radc_tuning = dict(kld7_radc_tuning_kwargs)
 
-    # Configure logging - always show INFO and above for openflight modules
-    # This ensures trigger events and important messages are visible
-    logging.basicConfig(
-        level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    )
-    # Set rolling buffer logger to INFO so trigger events are visible
-    logging.getLogger("openflight.rolling_buffer").setLevel(logging.INFO)
-    logging.getLogger("openflight.rolling_buffer.trigger").setLevel(logging.INFO)
-    logging.getLogger("openflight.rolling_buffer.monitor").setLevel(logging.INFO)
+    # Configure logging using openflight.log
+    from .log import configure_logging
 
-    print("=" * 50)
-    print("  OpenFlight UI Server")
-    print("=" * 50)
-    print()
+    configure_logging(level=args.log_level)
+
+    logger.info("==================================================")
+    logger.info("  OpenFlight UI Server")
+    logger.info("==================================================")
 
     # Initialize session logger (enabled for both real and mock modes)
     if not args.no_logging:
         log_dir = Path(args.log_dir) if args.log_dir else None
         init_session_logger(log_dir=log_dir, location=args.session_location, enabled=True)
-        print(f"Session logging enabled (location: {args.session_location})")
+        logger.info("Session logging enabled (location: %s)", args.session_location)
     else:
         init_session_logger(enabled=False)
-        print("Session logging DISABLED")
+        logger.info("Session logging DISABLED")
 
     if ballistics_enabled:
-        print("Ballistic carry model: ENABLED (simulator + drag/Magnus)")
+        logger.info("Ballistic carry model: ENABLED (simulator + drag/Magnus)")
     else:
-        print("Ballistic carry model: DISABLED (table fallback for all shots)")
+        logger.info("Ballistic carry model: DISABLED (table fallback for all shots)")
 
     # Configure radar logging if requested
     if args.radar_log:
-        logging.basicConfig(
-            level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-        )
         radar_logger = logging.getLogger("ops243")
         radar_raw_logger = logging.getLogger("ops243.raw")
         radar_logger.setLevel(logging.DEBUG)
         radar_raw_logger.setLevel(logging.DEBUG)
-        print("Radar raw logging ENABLED - all readings will be logged")
+        logger.info("Radar raw logging ENABLED - all readings will be logged")
 
     # Enable raw reading console output if requested
     if args.show_raw:
         set_show_raw_readings(True)
-        print("Raw radar readings display ENABLED - signed speed values will be shown")
+        logger.info("Raw radar readings display ENABLED - signed speed values will be shown")
 
     # Start the monitor
     # Build trigger-specific kwargs (pre_trigger_segments always passed)
@@ -4140,14 +4141,14 @@ def main():
         ):
             start_camera_thread()
         else:
-            print("Camera not available - running without camera")
+            logger.warning("Camera not available - running without camera")
     else:
-        print("Camera disabled by --no-camera flag")
+        logger.info("Camera disabled by --no-camera flag")
 
     if experimental_kld7_raw_radc_logging:
-        print("Experimental K-LD7 raw RADC payload logging enabled")
+        logger.info("Experimental K-LD7 raw RADC payload logging enabled")
     if experimental_kld7_radc_tuning:
-        print(f"Experimental K-LD7 RADC tuning enabled: {kld7_radc_tuning_kwargs}")
+        logger.info("Experimental K-LD7 RADC tuning enabled: %s", kld7_radc_tuning_kwargs)
 
     if args.iwr6843:
         iwr_output_dir = (
@@ -4182,19 +4183,22 @@ def main():
             ball_speed_correction_ball_above_radar_ft = (
                 calibration.tee_ball_height_m - calibration.radar_height_m
             ) * 3.28084
-            print(
-                "IWR6843 enabled (LCMF-v1 launch angle, "
-                f"BCM{args.iwr6843_trigger_pin}, {iwr6843_runtime.tx_order} TX order)"
+            logger.info(
+                "IWR6843 enabled (LCMF-v1 launch angle, BCM%s, %s TX order)",
+                args.iwr6843_trigger_pin,
+                iwr6843_runtime.tx_order,
             )
             if args.debug:
-                print(f"IWR6843 raw dumps enabled: {iwr_output_dir}")
+                logger.info("IWR6843 raw dumps enabled: %s", iwr_output_dir)
         else:
-            print("ERROR: IWR6843 requested but failed to initialize. Exiting.")
+            logger.error("ERROR: IWR6843 requested but failed to initialize. Exiting.")
             sys.exit(1)
 
     if args.inclinometer:
         if not init_inclinometer(zero_offset_deg=args.inclinometer_zero_offset):
-            print("WARNING: Inclinometer unavailable; continuing with configured IWR6843 tilt")
+            logger.warning(
+                "WARNING: Inclinometer unavailable; continuing with configured IWR6843 tilt"
+            )
 
     # Initialize K-LD7 angle radars (if enabled)
     if args.kld7:
@@ -4215,9 +4219,9 @@ def main():
             offset_str = (
                 f", offset: {args.kld7_angle_offset:+.1f}°" if args.kld7_angle_offset else ""
             )
-            print(f"K-LD7 vertical radar enabled (launch angle{offset_str})")
+            logger.info("K-LD7 vertical radar enabled (launch angle%s)", offset_str)
         else:
-            print("ERROR: K-LD7 vertical requested but failed to connect. Exiting.")
+            logger.error("ERROR: K-LD7 vertical requested but failed to connect. Exiting.")
             sys.exit(1)
 
     if args.kld7_horizontal:
@@ -4233,9 +4237,9 @@ def main():
                 if args.kld7_horizontal_offset
                 else ""
             )
-            print(f"K-LD7 horizontal radar enabled (club path{offset_str})")
+            logger.info("K-LD7 horizontal radar enabled (club path%s)", offset_str)
         else:
-            print("ERROR: K-LD7 horizontal requested but failed to connect. Exiting.")
+            logger.error("ERROR: K-LD7 horizontal requested but failed to connect. Exiting.")
             sys.exit(1)
 
     start_monitor(
@@ -4252,7 +4256,7 @@ def main():
 
     if battery_provider:
         start_power_monitor(battery_provider)
-        print(f"Battery monitoring: ENABLED ({battery_provider})")
+        logger.info("Battery monitoring: ENABLED (%s)", battery_provider)
 
     # Simulator connectors (off unless --sim). Started after the monitor exists
     # so inbound club updates can call monitor.set_club().
@@ -4263,18 +4267,24 @@ def main():
     )
     for connector in sim_connectors:
         connector.start()
-        print(f"Simulator connector enabled: {connector.name} -> {connector.host}:{connector.port}")
+        logger.info(
+            "Simulator connector enabled: %s -> %s:%s",
+            connector.name,
+            connector.host,
+            connector.port,
+        )
     if args.sim and not sim_connectors:
-        print("Simulator connectors enabled (--sim) but none are enabled in config/sim.json")
+        logger.warning(
+            "Simulator connectors enabled (--sim) but none are enabled in config/sim.json"
+        )
 
     if args.mock:
-        print("Running in MOCK mode - no radar required")
-        print("Simulate shots via WebSocket or API")
+        logger.info("Running in MOCK mode - no radar required")
+        logger.info("Simulate shots via WebSocket or API")
     if args.swing_speed:
-        print("Running in SWING SPEED mode - no ball impact trigger required")
+        logger.info("Running in SWING SPEED mode - no ball impact trigger required")
 
-    print(f"Server starting at http://{args.host}:{args.web_port}")
-    print()
+    logger.info("Server starting at http://%s:%s", args.host, args.web_port)
 
     try:
         # Note: Flask debug mode (reloader) is disabled to prevent duplicate processes

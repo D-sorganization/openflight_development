@@ -18,6 +18,8 @@ from . import __version__
 from .kld7.radc import RADC_PAYLOAD_BYTES
 from .ops243 import SpeedReading
 
+logger = logging.getLogger(__name__)
+
 # Version of the session JSONL format itself. Bump on breaking changes to
 # entry structure; additive changes (new fields, new entry types) do not
 # require a bump. Consumed by offline analysis and (eventually) cloud sync.
@@ -175,9 +177,11 @@ class SessionLogger:
 
         self._write_entry("session_start", asdict(metadata))
 
-        print(f"[SESSION] Started logging: {self._session_path}")
-        print(f"[SESSION] Mode: {mode}" + (f" (trigger: {trigger_type})" if trigger_type else ""))
-        print(f"[SESSION] Raw radar log: {self._raw_path}")
+        logger.info("[SESSION] Started logging: %s", self._session_path)
+        logger.info(
+            "[SESSION] Mode: %s%s", mode, f" (trigger: {trigger_type})" if trigger_type else ""
+        )
+        logger.info("[SESSION] Raw radar log: %s", self._raw_path)
 
         return self._session_id
 
@@ -281,8 +285,8 @@ class SessionLogger:
             handler.close()
             self._radar_logger.removeHandler(handler)
 
-        print(f"[SESSION] Ended. Total shots: {self._stats['shots_detected']}")
-        print(f"[SESSION] Logs saved to: {self._session_path}")
+        logger.info("[SESSION] Ended. Total shots: %s", self._stats["shots_detected"])
+        logger.info("[SESSION] Logs saved to: %s", self._session_path)
 
     def _write_entry(self, entry_type: str, data: Dict[str, Any]):
         """Write a log entry to the session file.

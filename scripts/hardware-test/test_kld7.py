@@ -42,7 +42,7 @@ Usage:
     python scripts/test_kld7.py -n 500
 
 To analyze afterwards:
-    python -c "import pickle; d=pickle.load(open('file.pkl','rb')); print(d['metadata'])"
+    python -c "from openflight.capture_io import load_capture; d=load_capture('file.json'); print(d['metadata'])"
 
 Datasheets:
     docs/K-LD7_Datasheet.pdf (module)
@@ -50,11 +50,17 @@ Datasheets:
 """
 
 import argparse
-import pickle
 import sys
 import time
 from datetime import datetime
 from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+SRC_ROOT = PROJECT_ROOT / "src"
+if str(SRC_ROOT) not in sys.path:
+    sys.path.insert(0, str(SRC_ROOT))
+
+from openflight.capture_io import save_capture  # noqa: E402
 
 try:
     from kld7 import KLD7, FrameCode, KLD7Exception
@@ -254,7 +260,7 @@ Examples:
         output_dir = Path.home() / "openflight_sessions"
         output_dir.mkdir(exist_ok=True)
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        output_path = output_dir / f"kld7_capture_{timestamp}.pkl"
+        output_path = output_dir / f"kld7_capture_{timestamp}.json"
 
     print("=" * 60)
     print("  K-LD7 Radar Test (Angle + Distance Data Gathering)")
@@ -425,8 +431,7 @@ Examples:
                 "frames": frames,
             }
 
-            with open(output_path, "wb") as f:
-                pickle.dump(output_data, f)
+            save_capture(output_path, output_data)
 
             print(f"  Output file:       {output_path}")
             print(f"  File size:         {output_path.stat().st_size / 1024:.1f} KB")

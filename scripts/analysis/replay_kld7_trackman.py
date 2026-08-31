@@ -16,7 +16,6 @@ import csv
 import itertools
 import json
 import math
-import pickle
 import statistics
 import sys
 from collections import Counter
@@ -30,6 +29,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "src"))
 
 from kld7_session_review_lib import _validate_frames  # noqa: E402
 
+from openflight.capture_io import load_capture  # noqa: E402
 from openflight.kld7.radc import (  # noqa: E402
     RADC_PAYLOAD_BYTES,
     extract_launch_angle,
@@ -266,8 +266,7 @@ def load_pickle_buffers(
     ``first_shot_number`` maps capture index 0 to a comparison row; subsequent
     OPS shots increment from there.
     """
-    with openflight_pickle.open("rb") as handle:
-        capture = pickle.load(handle)
+    capture = load_capture(openflight_pickle, allow_legacy_pickle=True)
     if not isinstance(capture, dict):
         raise ValueError(f"{openflight_pickle} must contain a dict capture")
 
@@ -304,8 +303,7 @@ def load_pickle_buffers(
 
 def pickle_capture_info(openflight_pickle: Path) -> dict[str, Any]:
     """Return lightweight metadata needed to align standalone pickle captures."""
-    with openflight_pickle.open("rb") as handle:
-        capture = pickle.load(handle)
+    capture = load_capture(openflight_pickle, allow_legacy_pickle=True)
     if not isinstance(capture, dict):
         raise ValueError(f"{openflight_pickle} must contain a dict capture")
     metadata = capture.get("metadata") if isinstance(capture.get("metadata"), dict) else {}

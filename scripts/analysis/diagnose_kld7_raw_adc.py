@@ -14,7 +14,6 @@ from __future__ import annotations
 import argparse
 import csv
 import json
-import pickle
 import sys
 from pathlib import Path
 
@@ -22,20 +21,13 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 REPO_ROOT = SCRIPT_DIR.parent.parent
 sys.path.insert(0, str(REPO_ROOT / "src"))
 
+from openflight.capture_io import load_capture
 from openflight.kld7.radc import (  # noqa: E402
     RADCFrameDiagnostics,
     radc_capture_diagnostics,
 )
 
 CHANNELS = ("f1a_i", "f1a_q", "f2a_i", "f2a_q", "f1b_i", "f1b_q")
-
-
-def load_capture(path: Path) -> dict:
-    with path.open("rb") as f:
-        data = pickle.load(f)
-    if not isinstance(data, dict):
-        raise ValueError(f"Expected pickle to contain a dict, got {type(data).__name__}")
-    return data
 
 
 def frames_from_capture(data: dict) -> list[dict]:
@@ -241,9 +233,14 @@ def main() -> None:
     parser.add_argument("--shot-ms-before", type=float, default=1200.0)
     parser.add_argument("--shot-ms-after", type=float, default=400.0)
     parser.add_argument("--output-dir", type=Path, default=None)
+    parser.add_argument(
+        "--allow-legacy-pickle",
+        action="store_true",
+        help="Allow loading legacy .pkl capture files",
+    )
     args = parser.parse_args()
 
-    data = load_capture(args.capture)
+    data = load_capture(args.capture, allow_legacy_pickle=args.allow_legacy_pickle)
     frames = frames_from_capture(data)
     if args.limit_frames is not None:
         frames = frames[: args.limit_frames]

@@ -6,12 +6,15 @@ or optionally YOLO/Roboflow for detection. Calculates launch angle
 from the ball trajectory.
 """
 
+import logging
 import math
 import os
 import time
 from collections import deque
 from dataclasses import dataclass
 from typing import List, Optional
+
+logger = logging.getLogger(__name__)
 
 try:
     import cv2
@@ -347,7 +350,7 @@ class CameraTracker:
                 if pred.get("confidence", 0) >= 0.3
             ]
         except Exception as e:
-            print(f"Roboflow detection error: {e}")
+            logger.error("Roboflow detection error: %s", e)
             return []
 
     def _compute_angles(self, dx_pixels: float, dy_pixels: float, dz: float):

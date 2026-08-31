@@ -23,22 +23,17 @@ Usage:
 """
 
 import argparse
-import pickle
 import sys
 from pathlib import Path
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 SRC_ROOT = PROJECT_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
+from openflight.capture_io import load_capture  # noqa: E402
 from openflight.kld7.tracker import KLD7Tracker  # noqa: E402
 from openflight.kld7.types import KLD7Frame  # noqa: E402
-
-
-def load_capture(path):
-    with open(path, "rb") as f:
-        return pickle.load(f)
 
 
 def print_metadata(meta):
@@ -389,6 +384,11 @@ def main():
     parser.add_argument(
         "--min-gap", type=float, default=0.5, help="Min gap (seconds) between events (default: 0.5)"
     )
+    parser.add_argument(
+        "--allow-legacy-pickle",
+        action="store_true",
+        help="Allow loading legacy .pkl capture files",
+    )
     args = parser.parse_args()
 
     path = Path(args.file).expanduser().resolve()
@@ -396,7 +396,7 @@ def main():
         print(f"Error: {path} not found")
         sys.exit(1)
 
-    data = load_capture(path)
+    data = load_capture(path, allow_legacy_pickle=args.allow_legacy_pickle)
     frames = data["frames"]
     meta = data["metadata"]
 

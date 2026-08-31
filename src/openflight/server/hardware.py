@@ -932,9 +932,7 @@ class MockSwingSpeedMonitor:
     def set_club(self, club: ClubType) -> None:
         pass
 
-    def set_training_implement(
-        self, implement: str, label: Optional[str] = None
-    ) -> None:
+    def set_training_implement(self, implement: str, label: Optional[str] = None) -> None:
         self.training_implement = implement
         self.training_implement_label = label or getattr(
             server, "TRAINING_IMPLEMENT_LABELS", {}

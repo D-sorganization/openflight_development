@@ -1,10 +1,10 @@
 """State and configuration definitions for the OpenFlight server."""
 
-from dataclasses import dataclass, field
 import importlib.util
 import logging
-from pathlib import Path
 import threading
+from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any, List, Optional
 
 from openflight.club_data import CLUB_LAUNCH_MODEL, OPTIMAL_SMASH
@@ -156,9 +156,7 @@ class AppState:
     experimental_kld7_raw_radc_logging: bool = False
 
     # Dynamic tuning / config dictionaries
-    active_kld7_radc_tuning: dict = field(
-        default_factory=lambda: dict(_DEFAULT_KLD7_RADC_TUNING)
-    )
+    active_kld7_radc_tuning: dict = field(default_factory=lambda: dict(_DEFAULT_KLD7_RADC_TUNING))
     iwr6843_runtime_config: dict = field(default_factory=lambda: {"enabled": False})
     inclinometer_runtime_config: dict = field(default_factory=lambda: {"enabled": False})
 

@@ -9,7 +9,8 @@ work item.
 ## Why this repo no longer carries an issue tracker
 
 `D-sorganization/openflight_development` is a *companion* to
-[`jewbetcha/openflight`](https://github.com/jewbetcha/openflight). Its `README.md`,
+[`open-flight/openflight`](https://github.com/open-flight/openflight) — the repo
+formerly at `jewbetcha/openflight`, which now redirects there. Its `README.md`,
 `src/`, `docs/`, `ui/`, `firmware/` and `cad/` are a snapshot of upstream; only
 `hardware/`, `validation/`, `project-reviews/`, `notes/` and this `backlog/`
 directory are original to it.
@@ -29,7 +30,7 @@ kinds of harm:
 ## The policy from here
 
 - **Software development happens upstream.** File issues and open PRs against
-  `jewbetcha/openflight` directly, following its `CONTRIBUTING.md` house rules
+  `open-flight/openflight` directly, following its `CONTRIBUTING.md` house rules
   (single-scope PRs, conventional titles, failing-test-first for bugs).
 - **This repo stays a companion.** Reviews, measurements, hardware notes, validation
   write-ups and the mirror snapshot. Prose, not tickets.

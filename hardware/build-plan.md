@@ -6,7 +6,7 @@
 This repo does not carry a GitHub issue tracker. The phases below are preserved
 as draft issues in [`backlog/draft-epics.md`](../backlog/draft-epics.md); this
 document remains the authoritative version. Software contributions go upstream to
-[`jewbetcha/openflight`](https://github.com/jewbetcha/openflight) — see
+[`open-flight/openflight`](https://github.com/open-flight/openflight) — see
 [`backlog/README.md`](../backlog/README.md).
 
 ## Phase 0 — Bench prep (no Pi required, can start today)
@@ -19,7 +19,7 @@ document remains the authoritative version. Software contributions go upstream t
 ## Phase 1 — Pi base system
 
 - [ ] Flash Raspberry Pi OS 64-bit; boot; network up.
-- [ ] `git clone https://github.com/jewbetcha/openflight.git && cd openflight && ./scripts/setup/setup.sh` (interactive; handles uv, deps, UI build, one-time hardware config prompts, auto-start).
+- [ ] `git clone https://github.com/open-flight/openflight.git && cd openflight && ./scripts/setup/setup.sh` (interactive; handles uv, deps, UI build, one-time hardware config prompts, auto-start).
 - [ ] Display working (HMTECH via HDMI/USB touch, or Touch Display 2 via DSI).
 - **Gate:** `scripts/start-kiosk.sh --mock` → UI at `http://localhost:8080` shows simulated shots.
 

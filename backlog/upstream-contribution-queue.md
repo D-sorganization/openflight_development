@@ -1,9 +1,9 @@
 # Upstream Contribution Queue — Draft
 
 **Archived:** 2026-09-06 · **Draft only — not filed, not tracked.**
-**Verified against** `jewbetcha/openflight` `main` = **`5dd0d0b`** (2026-09-02), fetched 2026-09-06.
+**Verified against** `open-flight/openflight` `main` = **`5dd0d0b`** (2026-09-02), fetched 2026-09-06.
 
-Software work that belongs to [`jewbetcha/openflight`](https://github.com/jewbetcha/openflight),
+Software work that belongs to [`open-flight/openflight`](https://github.com/open-flight/openflight),
 not to this repository. Nothing here is filed anywhere yet — filing it means opening
 an issue or PR **on the upstream repo**.
 
@@ -30,7 +30,7 @@ here instead of upstream. That is the drift, stated plainly: roughly nine PRs of
 software work living in a snapshot that upstream has since moved 1,182 commits
 past, in a repo with no ancestry link to rebase across.
 
-**The rule going forward:** clone `jewbetcha/openflight` fresh, branch from *its*
+**The rule going forward:** clone `open-flight/openflight` fresh, branch from *its*
 `main`, and open the PR there. Do not develop against the snapshot in this repo.
 
 ## Disposition of the nine local source PRs

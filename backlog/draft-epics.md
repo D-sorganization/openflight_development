@@ -7,6 +7,9 @@ former open issue is reproduced below **verbatim**, under the epic it belonged t
 Issue numbers are retained only so that older references and the closure comments
 on GitHub still resolve; the issues themselves are closed and will not be reopened.
 
+The bodies are unedited, so they still say `jewbetcha/openflight`; that repo was
+renamed and now redirects to [`open-flight/openflight`](https://github.com/open-flight/openflight).
+
 ## The dependency chain
 
 This backlog is almost entirely serial, because it is physical work. That is the

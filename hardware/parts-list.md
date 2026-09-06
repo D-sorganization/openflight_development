@@ -17,7 +17,7 @@ Target build: **current-generation stack** — OPS243 (speed/spin) + IWR6843LEVM
 
 | Item | Qty | Notes / action needed |
 |------|-----|----------------------|
-| TI IWR6843LEVM mmWave radar | 1 | ✅ **Variant confirmed 2026-07-31:** Digi-Key **296-IWR6843LEVM-ND**, MFG Texas Instruments **IWR6843LEVM** — exactly the board upstream targets (~$150, 60 GHz, 3 TX × 4 RX, CP2105 dual-UART USB bridge; firmware image, `.cfg`, S1 flash procedure, and enclosure geometry are all LEVM-specific). On arrival: verify silkscreen, identify USB connector type (data-capable cable), confirm S1 boot switch + RESET access — tracked in issue #8. |
+| TI IWR6843LEVM mmWave radar | 1 | ✅ **Variant confirmed 2026-07-31:** Digi-Key **296-IWR6843LEVM-ND**, MFG Texas Instruments **IWR6843LEVM** — exactly the board upstream targets (~$150, 60 GHz, 3 TX × 4 RX, CP2105 dual-UART USB bridge; firmware image, `.cfg`, S1 flash procedure, and enclosure geometry are all LEVM-specific). On arrival: verify silkscreen, identify USB connector type (data-capable cable), confirm S1 boot switch + RESET access — see draft `D8` in [`backlog/draft-epics.md`](../backlog/draft-epics.md). |
 
 ## Need to buy — core (blocks the build)
 

@@ -3,7 +3,11 @@
 **Date:** 2026-07-30
 **Principle (from upstream docs):** change one thing at a time and validate it before the next step — "doing both at once makes any failure ambiguous." Every phase below ends with a **gate**: a concrete command whose output proves the phase worked. Don't advance on a red gate.
 
-Progress is tracked as GitHub issues on this repo (label `build`).
+This repo does not carry a GitHub issue tracker. The phases below are preserved
+as draft issues in [`backlog/draft-epics.md`](../backlog/draft-epics.md); this
+document remains the authoritative version. Software contributions go upstream to
+[`open-flight/openflight`](https://github.com/open-flight/openflight) — see
+[`backlog/README.md`](../backlog/README.md).
 
 ## Phase 0 — Bench prep (no Pi required, can start today)
 
@@ -15,7 +19,7 @@ Progress is tracked as GitHub issues on this repo (label `build`).
 ## Phase 1 — Pi base system
 
 - [ ] Flash Raspberry Pi OS 64-bit; boot; network up.
-- [ ] `git clone https://github.com/jewbetcha/openflight.git && cd openflight && ./scripts/setup/setup.sh` (interactive; handles uv, deps, UI build, one-time hardware config prompts, auto-start).
+- [ ] `git clone https://github.com/open-flight/openflight.git && cd openflight && ./scripts/setup/setup.sh` (interactive; handles uv, deps, UI build, one-time hardware config prompts, auto-start).
 - [ ] Display working (HMTECH via HDMI/USB touch, or Touch Display 2 via DSI).
 - **Gate:** `scripts/start-kiosk.sh --mock` → UI at `http://localhost:8080` shows simulated shots.
 

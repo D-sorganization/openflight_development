@@ -3,7 +3,11 @@
 **Date:** 2026-07-30
 **Principle (from upstream docs):** change one thing at a time and validate it before the next step — "doing both at once makes any failure ambiguous." Every phase below ends with a **gate**: a concrete command whose output proves the phase worked. Don't advance on a red gate.
 
-Progress is tracked as GitHub issues on this repo (label `build`).
+This repo does not carry a GitHub issue tracker. The phases below are preserved
+as draft issues in [`backlog/draft-epics.md`](../backlog/draft-epics.md); this
+document remains the authoritative version. Software contributions go upstream to
+[`jewbetcha/openflight`](https://github.com/jewbetcha/openflight) — see
+[`backlog/README.md`](../backlog/README.md).
 
 ## Phase 0 — Bench prep (no Pi required, can start today)
 

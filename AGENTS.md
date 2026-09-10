@@ -126,6 +126,10 @@ for k in ['core', 'graphql']:
 
 Use repo-local context before broad exploration:
 
+- When `docs/agent_context/catalog.json` exists, use `agent-context --root . search` and focused `context` requests. Read public interfaces, provider and consumer relationships, integration contracts and relevant tests before changing a boundary.
+- Require current source hashes, checkout identity and pinned provider verification. A timestamp, a successful registry lookup or a peer note is not proof of current implementation. If the tool is unavailable or evidence is stale, read source directly and report the gap.
+- Update semantic contracts with implementation changes, run their integration tests, record a specific review rationale and regenerate views. `agent-context --root . check` must pass in the required quality gate. Never automatically renew reviews just to clear a freshness failure.
+- Keep mechanical inventories generated from existing registries and retrieve only relevant context. Use the existing presence/mailbox, handoff and development log for coordination; do not introduce a second message store. See the [adoption guide](https://github.com/D-sorganization/Repository_Management/blob/main/docs/agent-context.md).
 - Read `AGENTS.md` first, then check `docs/codemap.md` or `docs/operations/codemap_freshness_runbook.md` when present.
 - If `.codemap/` exists, treat it as a generated local cache for navigation; verify important claims against source files before editing.
 - If `.codemap/` is missing or stale, use source search (`rg`), focused file reads, and tests as the fallback. Report the missing/stale index as a rollout gap instead of blocking unrelated work.
@@ -247,7 +251,7 @@ fleet hooks as `development-log`. Run it directly with
 > This section is managed centrally by Repository_Management and synced fleet-wide.
 > Do NOT edit it directly in individual repositories — edit the source in Repository_Management/AGENTS.md.
 
-### Change-log rows are keyed by pull request
+### Change-Log Rows Are Keyed by Pull Request
 
 Binding fleet-wide from
 [Repository_Management#1520](https://github.com/D-sorganization/Repository_Management/issues/1520)
@@ -257,7 +261,7 @@ Binding fleet-wide from
   log: `| YYYY-MM-DD | #<your PR or issue> | one-line summary |`.
 - **Never put a serial spec version in a row**, and **never bump the
   `Spec Version` field**. That field is release-derived — set by
-  `scripts/bump_spec_version.py` when a release is cut.
+  Repository_Management's `scripts/bump_spec_version.py` when a release is cut.
 - **Never renumber, reorder, or reword another contributor's row**, including
   while resolving a rebase. If a rebase conflicts inside the table, keep both
   rows; that is always the correct resolution.

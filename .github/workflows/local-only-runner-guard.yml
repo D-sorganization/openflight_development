@@ -124,7 +124,7 @@ jobs:
           QUOTED_LITERAL = re.compile(r"'([^']*)'")
 
           def expression_candidates(value: str) -> list[str]:
-              """Return every runner label a `${{ ... }}` expression could resolve to.
+              """Return every runner label an Actions expression could resolve to.
 
               A toggle such as
 
@@ -246,7 +246,7 @@ jobs:
                           values = [raw]
                   # Reduce every runs-on to the concrete set of labels it can
                   # actually produce: dereference needs.<job>.outputs.<x> through
-                  # the producing job, and expand a `${{ ... }}` toggle into each
+                  # the producing job, and expand an Actions-expression toggle into each
                   # branch it can select. Judging the raw expression text instead
                   # is what previously let hosted routing slip through.
                   resolved: list[str] = []

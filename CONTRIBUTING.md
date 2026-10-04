@@ -244,3 +244,9 @@ The `MockLaunchMonitor` class simulates realistic shot data based on TrackMan av
 ## License
 
 By contributing, you agree that your contributions will be licensed under the GNU Affero General Public License v3.0 or later (AGPL-3.0-or-later).
+
+## Merging
+
+Pull requests merge through the GitHub merge queue. Arm auto-merge (squash) and the
+queue rebuilds the PR on the latest `main`, runs the required checks once more, and
+merges it. There is no need to update a PR branch by hand before merging.

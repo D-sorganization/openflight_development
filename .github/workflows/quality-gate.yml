@@ -3,6 +3,8 @@ name: quality-gate
 on:
   push:
   pull_request:
+  # Merge queue (Repository_Management#1890): required checks must report on the queue's merge commit.
+  merge_group:
 
 jobs:
   quality-gate:

@@ -2,6 +2,9 @@ name: quality-gate
 
 on:
   push:
+    # Queue branches are covered by merge_group; a push run there would duplicate
+    # the required check (or cancel it, under cancel-in-progress) (RM#1900).
+    branches-ignore: ["gh-readonly-queue/**"]
   pull_request:
   # Merge queue (Repository_Management#1890): required checks must report on the queue's merge commit.
   merge_group:

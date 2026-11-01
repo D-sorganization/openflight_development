@@ -49,7 +49,9 @@ logger = logging.getLogger(__name__)
 #: ``do-not-automate`` is the pre-existing fleet-wide convention
 #: (shared_scripts/agent_identity.DO_NOT_AUTOMATE_LABEL); honouring it here
 #: keeps one vocabulary rather than a parallel one.
-HOLD_LABELS = frozenset({"do-not-merge", "blocked", "do-not-automate"})
+HOLD_LABELS = frozenset(
+    {"do-not-merge", "blocked", "do-not-automate", "conflict:disarmed"}
+)
 
 #: Label that acknowledges an intentional deletion of tracked files.
 DELETIONS_ACK_LABEL = "deletions-acknowledged"
@@ -94,6 +96,10 @@ def _default_runner(cmd: Sequence[str]) -> subprocess.CompletedProcess[str]:
         errors="replace",
         check=False,
     )
+
+
+# Public transport seam for related read-only guards; authentication is unchanged.
+run_command: CommandRunner = _default_runner
 
 
 def classify_token(token: str) -> str:
@@ -198,7 +204,11 @@ class HoldVerdict:
     def describe(self) -> str:
         if not self.held:
             return "no hold in effect"
-        return "; ".join(self.reasons) or "unknown hold"
+        if self.reasons:
+            return "; ".join(self.reasons)
+        if self.error:
+            return f"hold check failed: {self.error}"
+        return "unknown hold"
 
 
 @dataclass(frozen=True)
@@ -470,6 +480,9 @@ def evaluate_hold(
         reasons = [f"`{label}` label" for label in sorted(lowered & HOLD_LABELS)]
         if pull.draft:
             reasons.append("PR is a draft (mark ready first)")
+        mergeable_state = str(raw.get("mergeable_state") or "").lower()
+        if mergeable_state == "dirty":
+            reasons.append("PR mergeable_state is dirty (conflicts with base)")
         reasons += _disarm_reasons(run, repo, pr, pull.head_sha)
         reasons += _deletion_reasons(run, repo, pr, pull)
     except (RuntimeError, json.JSONDecodeError, OSError) as exc:
@@ -718,7 +731,9 @@ def arm_auto_merge(
         )
         return ArmResult(False, verdict, "held")
 
-    cmd = ["gh", "pr", "merge", str(pr), "--repo", repo, f"--{strategy}", "--auto"]
+    # Let GitHub use the repository or merge-queue method. An explicit method
+    # conflicts with queue policy, which owns the method for queued PRs.
+    cmd = ["gh", "pr", "merge", str(pr), "--repo", repo, "--auto"]
     if delete_branch:
         cmd.append("--delete-branch")
     proc = run(cmd)

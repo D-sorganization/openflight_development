@@ -19,6 +19,7 @@ import logging
 import re
 import subprocess
 import sys
+import time
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
@@ -42,6 +43,14 @@ Enqueue = Callable[[str, int], tuple[bool, str]]
 DEFAULT_LIMIT = 10
 _REPO_SLUG = re.compile(r"^[\w.-]+/[\w.-]+$")
 _OPEN_ARMED_JQ = ".[] | select(.draft | not) | select(.auto_merge != null) | .number"
+#: ``gh api`` is retried only for failures a repeat can plausibly fix (#2498).
+_GH_ATTEMPTS = 3
+_GH_RETRY_DELAY_SECONDS = 5
+_TRANSIENT_GH_ERRORS = re.compile(
+    r"HTTP 5\d\d|timed out|timeout|connection (?:reset|refused)|"
+    r"error connecting|temporary failure|EOF",
+    re.IGNORECASE,
+)
 _QUEUE_EVENTS_JQ = (
     '.[] | select(.event == "added_to_merge_queue" '
     'or .event == "removed_from_merge_queue") | .event'
@@ -62,11 +71,22 @@ def _run(cmd: Sequence[str]) -> subprocess.CompletedProcess[str]:
     return subprocess.run(list(cmd), capture_output=True, text=True, check=False)
 
 
+def _transient_gh_failure(proc: subprocess.CompletedProcess[str]) -> bool:
+    text = f"{proc.stderr or ''}{proc.stdout or ''}"
+    return _TRANSIENT_GH_ERRORS.search(text) is not None
+
+
 def _gh_lines(run: CommandRunner, args: Sequence[str]) -> list[str]:
-    proc = run(["gh", "api", *args])
-    if proc.returncode != 0:
-        raise RuntimeError(proc.stderr.strip() or proc.stdout.strip() or "gh failed")
-    return [line.strip() for line in proc.stdout.splitlines() if line.strip()]
+    last_err = "gh failed"
+    for attempt in range(1, _GH_ATTEMPTS + 1):
+        proc = run(["gh", "api", *args])
+        if proc.returncode == 0:
+            return [line.strip() for line in proc.stdout.splitlines() if line.strip()]
+        last_err = proc.stderr.strip() or proc.stdout.strip() or "gh failed"
+        if not _transient_gh_failure(proc) or attempt == _GH_ATTEMPTS:
+            raise RuntimeError(last_err)
+        time.sleep(_GH_RETRY_DELAY_SECONDS * attempt)
+    raise RuntimeError(last_err)
 
 
 def open_armed_prs(repo: str, run: CommandRunner) -> list[int]:

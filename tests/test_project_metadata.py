@@ -55,6 +55,7 @@ VENDORED_FLEET_FILES = (
     "scripts/pre_push_agent_check.py",
     "scripts/pre_push_scope.py",
     "shared_scripts/agent_check.py",
+    "shared_scripts/agent_check_regen_trust.py",
     "shared_scripts/agent_hook_adapters.py",
 )
 

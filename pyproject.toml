@@ -95,7 +95,18 @@ dev = [
 [tool.ruff]
 line-length = 100
 target-version = "py310"
-extend-exclude = ["vendor"]
+extend-exclude = [
+    "vendor",
+    # Repository_Management-canonical files, vendored byte-for-byte and linted
+    # under RM's own ruff config; a local format pass would drift from canonical
+    # and be overwritten by the next sync (#84).
+    "scripts/automerge_guard.py",
+    "scripts/requeue_stalled_merges.py",
+    "scripts/pre_push_agent_check.py",
+    "scripts/pre_push_scope.py",
+    "shared_scripts/agent_check.py",
+    "shared_scripts/agent_hook_adapters.py",
+]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "T20"]

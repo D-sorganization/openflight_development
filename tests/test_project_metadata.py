@@ -45,3 +45,28 @@ def test_camera_extra_is_disabled_until_camera_support_returns():
     camera_dependencies = _pyproject()["project"]["optional-dependencies"]["camera"]
 
     assert camera_dependencies == []
+
+
+# Repository_Management-canonical files vendored byte-for-byte into this repo
+# (RM config/vendored_fleet_manifest.json and the agent-hook-adapter sync).
+VENDORED_FLEET_FILES = (
+    "scripts/automerge_guard.py",
+    "scripts/requeue_stalled_merges.py",
+    "scripts/pre_push_agent_check.py",
+    "scripts/pre_push_scope.py",
+    "shared_scripts/agent_check.py",
+    "shared_scripts/agent_hook_adapters.py",
+)
+
+
+def test_vendored_fleet_files_are_excluded_from_local_ruff():
+    """RM formats its canonical files under its own ruff config (#84).
+
+    Linting them here against line-length 100 and combine-as-imports kept main's
+    Ruff job red after every sync, and reformatting locally would only drift from
+    the canonical bytes until the next sync overwrites them.
+    """
+    excluded = set(_pyproject()["tool"]["ruff"].get("extend-exclude", []))
+    present = [path for path in VENDORED_FLEET_FILES if Path(path).is_file()]
+    assert present, "expected at least one vendored fleet file"
+    assert sorted(set(present) - excluded) == []
